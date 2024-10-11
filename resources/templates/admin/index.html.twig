@@ -1,0 +1,71 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+<div class="container">
+<h1>VeraCrypt Crash Reporter search</h1>
+<form action="" method="{{ form.getMethod() }}" class="border p-3 rounded">
+    {{ include('parts/forms/cr_common_fields.html.twig') }}
+    <div class="row mb-3">
+        {% set field = form.getField('minDate') %}
+        {{ include('parts/forms/fields/' ~ field.inputType ~ '.html.twig', {field: field, label_class: 'col-sm-2 col-form-label', div_class: 'col-sm-4', input_class: 'form-control'}) }}
+        {% set field = form.getField('maxDate') %}
+        {{ include('parts/forms/fields/' ~ field.inputType ~ '.html.twig', {field: field, label_class: 'col-sm-2 col-form-label', div_class: 'col-sm-4', input_class: 'form-control'}) }}
+    </div>
+    <div class="row mb-3">
+        {# @todo should we move this to the SearchForm ? #}
+        <label for="ps" class="col-sm-2 col-form-label">Reports per page</label>
+        <div class="col-sm-2"><select id="ps" name="ps" class="form-select">
+        {% for i in page_sizes %}
+            <option value="{{ i }}"{% if i == page_size %}selected="selected"{% endif %}>{{ i }}</option>
+        {% endfor %}
+        </select></div>
+    </div>
+    <div class="row">
+        {% set field = form.getSubmit() %}
+        {{ include('parts/forms/fields/' ~ field.inputType ~ '.html.twig', {field: field, input_class: 'btn btn-primary form-control'}) }}
+    </div>
+</form>
+</div>
+
+<div class="container">
+{% if form.isSubmitted() and form.isValid() %}
+<p>Found {{ num_reports }} crash reports{% if num_reports > page_size %}, showing {{ page_size }} per page{% endif %}</p>
+{{ include('parts/paginator.html.twig') }}
+<table class="table">
+<thead>
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">Date</th>
+        <th scope="col">Program Version</th>
+        <th scope="col">OS Version</th>
+        <th scope="col">HW Architecture</th>
+        <th scope="col">Executable Checksum</th>
+        <th scope="col">Error Category</th>
+        <th scope="col">Error Address</th>
+        <th scope="col">Call Stack</th>
+    </tr>
+</thead>
+<tbody>
+    {% for report in reports %}
+    <tr>
+        <th scope="row">{{ loop.index }}</th> {# @todo replace with report hash or rownum? #}
+        <td>{{ report.dateReportedDT|date('Y-m-d H:i:s') }}</td>
+        <td>{{ report.programVersion }}</td>
+        <td>{{ report.osVersion }}</td>
+        <td>{{ report.hwArchitecture }}</td>
+        <td>{{ report.executableChecksum }}</td>
+        <td>{{ report.errorCategory }}</td>
+        <td>{{ report.errorAddress }}</td>
+        <td>{{ report.callStack }}</td> {# @todo show hidden + allow expansion #}
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+{{ include('parts/paginator.html.twig') }}
+
+{% else %}
+    Note: accepted wildcard characters are the ones for SQL LIKE statements: '_' for any one char, and '?' for zero or more chars
+{% endif %}
+</div>
+
+{% endblock %}

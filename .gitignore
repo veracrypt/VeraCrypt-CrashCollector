@@ -3,4 +3,5 @@
 /var/data/
 /var/logs/
 /vendor/
+/.env.local
 !.gitkeep

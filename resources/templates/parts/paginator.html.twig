@@ -1,0 +1,11 @@
+{% if num_pages > 1 %}
+    Page
+    {% for i in 0 .. num_pages - 1 %}
+        {% if i == current_page %}
+            {{ i + 1}}
+        {% else %}
+            <a href="{{ form_url }}&pn={{ i }}">{{ i + 1 }}</a>
+        {% endif %}
+        {% if i < num_pages -1 %}|{% endif %}
+    {% endfor %}
+{% endif %}

@@ -1,0 +1,144 @@
+#!/usr/bin/env php
+<?php
+
+require_once(__DIR__ . '/../autoload.php');
+
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Helper\Table;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\Question;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use Veracrypt\CrashCollector\Repository\UserRepository;
+use Veracrypt\CrashCollector\Security\PasswordHasher;
+
+$application = new Application();
+
+$application->register('user:activate')
+    ->addArgument('username', InputArgument::REQUIRED)
+    ->setCode(function (InputInterface $input, OutputInterface $output): int {
+        $ur = new UserRepository();
+        if (!$ur->activateUser($input->getArgument('username'))) {
+            return Command::FAILURE;
+        }
+        return Command::SUCCESS;
+    });
+
+$application->register('user:create')
+    ->addArgument('username', InputArgument::REQUIRED)
+    ->addArgument('email', InputArgument::REQUIRED)
+    ->addArgument('first-name', InputArgument::REQUIRED)
+    ->addArgument('last-name', InputArgument::REQUIRED)
+    ->addOption('password', null, InputOption::VALUE_REQUIRED, 'Will be asked for interactively if not passed in')
+    ->addOption('is-superuser', null, InputOption::VALUE_NONE)
+    ->addOption('is-inactive', null, InputOption::VALUE_NONE)
+    ->setCode(function (InputInterface $input, OutputInterface $output): int {
+
+        // allow the password to be passed in via cli options or interactively, which is safer
+        $plainPassword = trim($input->getOption('password'));
+        if ($plainPassword === '') {
+            $io = new SymfonyStyle($input, $output);
+            $errorIo = $output instanceof ConsoleOutputInterface ? new SymfonyStyle($input, $output->getErrorOutput()) : $io;
+            if (!$input->isInteractive()) {
+                $errorIo->error('The password must not be empty.');
+                return Command::FAILURE;
+            }
+            $passwordQuestion = new Question('Type in the password to be hashed');
+            $plainPassword = $errorIo->askQuestion(
+                $passwordQuestion->setValidator(
+                    function ($value) {
+                        if ('' === trim($value)) {
+                            throw new InvalidArgumentException('The password must not be empty');
+                        }
+                        return $value;
+                    }
+                )->setHidden(true)->setMaxAttempts(20)
+            );
+        }
+
+        $ph = new PasswordHasher();
+        $ur = new UserRepository();
+        $ur->createUser(
+            $input->getArgument('username'),
+            /// @todo move the hash creation to the Repository?
+            $ph->hash($plainPassword),
+            $input->getArgument('email'),
+            $input->getArgument('first-name'),
+            $input->getArgument('last-name'),
+            (bool)$input->getOption('is-superuser'),
+            !$input->getOption('is-inactive')
+        );
+
+        $output->writeln("User created");
+        return Command::SUCCESS;
+    });
+
+$application->register('user:deactivate')
+    ->addArgument('username', InputArgument::REQUIRED)
+    ->setCode(function (InputInterface $input, OutputInterface $output): int {
+        $ur = new UserRepository();
+        if (!$ur->deactivateUser($input->getArgument('username'))) {
+            $output->writeln("User not found");
+            return Command::FAILURE;
+        }
+        $output->writeln("User deactivated");
+        return Command::SUCCESS;
+    });
+
+$application->register('user:delete')
+    ->addArgument('username', InputArgument::REQUIRED)
+    ->setCode(function (InputInterface $input, OutputInterface $output): int {
+        $ur = new UserRepository();
+        if (!$ur->deleteUser($input->getArgument('username'))) {
+            $output->writeln("User not found");
+            return Command::FAILURE;
+        }
+        $output->writeln("User deleted");
+        return Command::SUCCESS;
+    });
+
+$application->register('user:list')
+    ->setCode(function (InputInterface $input, OutputInterface $output): int {
+        $ur = new UserRepository();
+        $table = new Table($output);
+        $table
+            ->setHeaders(['username', 'email', 'first_name', 'last_name', 'date_joined', 'last_login', 'is_active', 'is_superuser'])
+            ->setRows($ur->listUsers());
+        $table->render();
+        return Command::SUCCESS;
+    });
+
+$application->register('user:update')
+    ->addArgument('username', InputArgument::REQUIRED)
+    ->addOption('email', null, InputOption::VALUE_REQUIRED)
+    ->addOption('first-name', null, InputOption::VALUE_REQUIRED)
+    ->addOption('last-name', null, InputOption::VALUE_REQUIRED)
+    ->addOption('password', null, InputOption::VALUE_REQUIRED)
+    ->addOption('is-superuser', null, InputOption::VALUE_REQUIRED, 'Use a 1/0 value to enable/disable')
+    ->addOption('is-inactive', null, InputOption::VALUE_REQUIRED, 'Use a 1/0 value to enable/disable')
+    ->setCode(function (InputInterface $input, OutputInterface $output): int {
+        $ur = new UserRepository();
+        $isSuperuser = $input->getOption('is-superuser') !== null ? (bool)$input->getOption('is-superuser') : null;
+        $isActive = $input->getOption('is-inactive') !== null ? !$input->getOption('is-inactive') : null;
+        if (!$ur->updateUser(
+            $input->getArgument('username'),
+            $input->getOption('password'),
+            $input->getOption('email'),
+            $input->getOption('first-name'),
+            $input->getOption('last-name'),
+            $isSuperuser,
+            $isActive,
+        )) {
+            $output->writeln("User not found");
+            return Command::FAILURE;
+        }
+        $output->writeln("User updated");
+        return Command::SUCCESS;
+    });
+
+$application->run();

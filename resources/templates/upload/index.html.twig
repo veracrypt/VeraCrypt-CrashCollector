@@ -1,0 +1,22 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+<div class="container">
+<h1>VeraCrypt Crash Reporter</h1>
+{% if form.isSubmitted() and form.isValid() %}
+    <p class="text-success">Thank you for taking the time to submit the information and sorry for your hassles.</p>
+{% else %}
+    <form action="{{ form_url }}" method="{{ form.getMethod() }}" class="border p-3 rounded">
+        {{ include('parts/forms/cr_common_fields.html.twig') }}
+        <div class="row mb-3">
+            {% set field = form.getField('callStack') %}
+            {{ include('parts/forms/fields/' ~ field.inputType ~ '.html.twig', {field: field, label_class: 'col-sm-2 col-form-label', div_class: 'col-sm-10', input_class: 'form-control'}) }}
+        </div>
+        <div class="row">
+            {% set field = form.getSubmit() %}
+            {{ include('parts/forms/fields/' ~ field.inputType ~ '.html.twig', {field: field, input_class: 'btn btn-primary form-control'}) }}
+        </div>
+    </form>
+{% endif %}
+</div>
+{% endblock %}

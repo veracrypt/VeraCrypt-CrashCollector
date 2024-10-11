@@ -1,0 +1,4 @@
+<label for="{{ field.inputName }}" class="{{ label_class }}">{{ field.label }}</label>
+<div class="{{ div_class }}"><textarea id="{{ field.inputName }}" name="{{ field.inputName }}" class="{{ input_class }}">{{ field.value }}</textarea></div>
+{# @todo allow better styling of the error message: align it below the input field #}
+{% if field.errorMessage != '' %}<p class="text-danger">{{ field.errorMessage }}</p>{% endif %}

@@ -1,0 +1,6 @@
+{% for field_name in ['programVersion', 'osVersion', 'hwArchitecture', 'executableChecksum', 'errorCategory', 'errorAddress'] %}
+    <div class="row mb-3">
+        {% set field = form.getField(field_name) %}
+        {{ include('parts/forms/fields/' ~ field.inputType ~ '.html.twig', {field: field, label_class: 'col-sm-2 col-form-label', div_class: 'col-sm-10', input_class: 'form-control'}) }}
+    </div>
+{% endfor %}
