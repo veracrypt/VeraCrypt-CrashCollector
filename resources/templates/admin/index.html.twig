@@ -1,15 +1,14 @@
 {% extends "base.html.twig" %}
 
 {% block body %}
+{% import "parts/forms/macros.html.twig" as forms %}
 <div class="container">
 <h1>VeraCrypt Crash Reporter search</h1>
 <form action="" method="{{ form.getMethod() }}" class="border p-3 rounded">
     {{ include('parts/forms/cr_common_fields.html.twig') }}
     <div class="row mb-3">
-        {% set field = form.getField('minDate') %}
-        {{ include('parts/forms/fields/' ~ field.inputType ~ '.html.twig', {field: field, label_class: 'col-sm-2 col-form-label', div_class: 'col-sm-4', input_class: 'form-control'}) }}
-        {% set field = form.getField('maxDate') %}
-        {{ include('parts/forms/fields/' ~ field.inputType ~ '.html.twig', {field: field, label_class: 'col-sm-2 col-form-label', div_class: 'col-sm-4', input_class: 'form-control'}) }}
+        {{ forms.input(form.getField('minDate'), {'label': 'col-sm-2 col-form-label', 'div': 'col-sm-4', 'input': 'form-control'}) }}
+        {{ forms.input(form.getField('maxDate'), {'label': 'col-sm-2 col-form-label', 'div': 'col-sm-4', 'input': 'form-control'}) }}
     </div>
     <div class="row mb-3">
         {# @todo should we move this to the SearchForm ? #}
@@ -21,8 +20,7 @@
         </select></div>
     </div>
     <div class="row">
-        {% set field = form.getSubmit() %}
-        {{ include('parts/forms/fields/' ~ field.inputType ~ '.html.twig', {field: field, input_class: 'btn btn-primary form-control'}) }}
+        {{ forms.input(form.getSubmit(), {'input': 'btn btn-primary form-control'}) }}
     </div>
 </form>
 </div>
@@ -30,7 +28,7 @@
 <div class="container">
 {% if form.isSubmitted() and form.isValid() %}
 <p>Found {{ num_reports }} crash reports{% if num_reports > page_size %}, showing {{ page_size }} per page{% endif %}</p>
-{{ include('parts/paginator.html.twig') }}
+{{ forms.paginator(current_page, num_pages, form_url) }}
 <table class="table">
 <thead>
     <tr>
@@ -61,7 +59,7 @@
     {% endfor %}
 </tbody>
 </table>
-{{ include('parts/paginator.html.twig') }}
+{{ forms.paginator(current_page, num_pages, form_url) }}
 
 {% else %}
     Note: accepted wildcard characters are the ones for SQL LIKE statements: '_' for any one char, and '?' for zero or more chars
