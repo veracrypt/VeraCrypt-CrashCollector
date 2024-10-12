@@ -20,7 +20,9 @@
         </select></div>
     </div>
     <div class="row">
-        {{ forms.input(form.getSubmit(), {'input': 'btn btn-primary form-control'}) }}
+        <div class="col-sm-2"></div>
+        {{ forms.input(form.getSubmit(), {'input': 'btn btn-primary form-control', 'div': 'col-sm-4'}) }}
+        <input type="reset" value="Reset Form" class="btn btn-secondary col-sm-4">
     </div>
 </form>
 </div>

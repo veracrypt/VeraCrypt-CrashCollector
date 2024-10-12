@@ -7,7 +7,7 @@
     {% elseif field.inputType == 'hidden' %}
         <input type="hidden" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}"/>
     {% elseif field.inputType == 'submit' %}
-        <button type="submit" name="{{ field.inputName }}" value="{{ field.value }}" class="btn btn-primary form-control">{{ field.label }}</button>
+        <div class="{{ css_classes.div|default('') }}"><button type="submit" name="{{ field.inputName }}" value="{{ field.value }}" class="btn btn-primary form-control">{{ field.label }}</button></div>
     {% elseif field.inputType == 'text' %}
         <label for="{{ field.inputName }}" class="{{ css_classes.label|default('') }}">{{ field.label }}</label>
         <div class="{{ css_classes.div|default('') }}"><input type="text" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"></div>
@@ -24,7 +24,7 @@
         Page
         {% for i in 0 .. num_pages - 1 %}
             {% if i == current_page %}
-                {{ i + 1}}
+                {{ i + 1 }}
             {% else %}
                 <a href="{{ form_url }}&pn={{ i }}">{{ i + 1 }}</a>
             {% endif %}
