@@ -1,0 +1,9 @@
+# __NB__: this file is put in only as a secondary safety precaution!
+# The correct way to set up this application is to only allow web users access to the /public directory
+
+<Files ~ "\.(db|env|env\.local|log|twig)$">
+  deny from all
+</Files>
+<Files ~ "^(CHANGELOG(\.md)?|console|composer\.+|installed\.json|LICENSE|README\.(md|rst))$">
+  deny from all
+</Files>
