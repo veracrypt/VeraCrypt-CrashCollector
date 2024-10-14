@@ -2,15 +2,28 @@
 
 require_once(__DIR__ . '/../../autoload.php');
 
+use Veracrypt\CrashCollector\Entity\UserRole;
+use Veracrypt\CrashCollector\Exception\AuthorizationException;
 use Veracrypt\CrashCollector\Form\CrashReportSearchForm;
 use Veracrypt\CrashCollector\Repository\CrashReportRepository;
 use Veracrypt\CrashCollector\Router;
+use Veracrypt\CrashCollector\Security\Firewall;
 use Veracrypt\CrashCollector\Templating;
 
 /// @todo get from .env?
 $pageSizes = [10, 25, 50];
 
-/// @todo add ACLs
+$firewall = Firewall::getInstance();
+$router = new Router();
+$tpl = new Templating();
+
+try {
+    $firewall->require(UserRole::User);
+    $user = $firewall->getUser();
+} catch (AuthorizationException $e) {
+    $firewall->displayAdminLoginPage($router->generate(__FILE__, $_GET));
+    exit();
+}
 
 $reports = [];
 $numReports = 0;
@@ -37,10 +50,9 @@ if ($form->isSubmitted()) {
     }
 }
 
-$tpl = new Templating();
-$router = new Router();
 echo $tpl->render('admin/index.html.twig', [
     'form' => $form, 'reports' => $reports, 'num_reports' => $numReports, 'current_page' => $pageNum,
     'page_size' => $pageSize, 'num_pages' => ceil($numReports / $pageSize), 'page_sizes' => $pageSizes,
-    'form_url' => $router->generate(__FILE__, $form->getQueryStringParts(true)),
+    'form_url' => $router->generate(__FILE__, $form->getQueryStringParts(true)), 'user' => $user,
+    'logout_url' => $router->generate(__DIR__ . '/logout.php'), 'root_url' => $router->generate(__DIR__ . '/..'),
 ]);

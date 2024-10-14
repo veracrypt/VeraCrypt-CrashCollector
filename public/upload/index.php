@@ -22,8 +22,8 @@ if ($form->isSubmitted()) {
     $form->handleRequest($_GET);
 }
 
-$tpl = new Templating();
 $router = new Router();
+$tpl = new Templating();
 echo $tpl->render('upload/index.html.twig', [
-    'form' => $form, 'form_url' => $router->generate(__FILE__)
+    'form' => $form, 'form_url' => $router->generate(__FILE__), 'root_url' => $router->generate(__DIR__ . '/..')
 ]);

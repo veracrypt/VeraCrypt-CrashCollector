@@ -2,12 +2,22 @@
 
 namespace Veracrypt\CrashCollector\Repository;
 
+use Veracrypt\CrashCollector\Storage\DatabaseColumn;
+
 class Field
 {
+    use DatabaseColumn;
+
+    /**
+     * @param mixed $constraints keys must be FieldConstraint constants
+     */
     public function __construct(
         public readonly ?string $entityField,
-        public readonly string $type,
-        public readonly array $constraints
-    ) {
+        string $type,
+        array $constraints
+    )
+    {
+        $this->type = $type;
+        $this->constraints = $constraints;
     }
 }

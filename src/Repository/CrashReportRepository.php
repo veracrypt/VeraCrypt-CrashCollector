@@ -8,8 +8,12 @@ use Veracrypt\CrashCollector\Repository\FieldConstraint as FC;
 
 class CrashReportRepository extends Repository
 {
-    protected $tableName = 'crash_report';
+    protected string $tableName = 'crash_report';
 
+    /**
+     * @throws \DomainException in case of unsupported database type
+     * @trows \PDOException
+     */
     public function __construct()
     {
         /// @todo add a 'hash' column as PK instead of the ID? If so, it could/should probably include the source IP too...
@@ -30,6 +34,7 @@ class CrashReportRepository extends Repository
 
     /**
      * Note: this does not validate the length of the fields, nor truncate them. The length validation is left to the Form
+     * @throws \PDOException
      */
     public function createReport(string $programVersion, string $osVersion, string $hwArchitecture, string $executableChecksum,
         string $errorCategory, string $errorAddress, string $callStack): CrashReport
@@ -43,6 +48,7 @@ class CrashReportRepository extends Repository
 
     /**
      * @return CrashReport[]
+     * @throws \PDOException
      */
     public function searchReports(int $limit, int $offset = 0, ?string $programVersion = null, ?string $osVersion = null,
         ?string $hwArchitecture = null, ?string $executableChecksum = null, ?string $errorCategory = null, ?string $errorAddress = null,
@@ -69,6 +75,9 @@ class CrashReportRepository extends Repository
         return array_map(static fn($result) => new CrashReport(...$result), $results);
     }
 
+    /**
+     * @throws \PDOException
+     */
     public function countReports(?string $programVersion = null, ?string $osVersion = null, ?string $hwArchitecture = null,
         ?string $executableChecksum = null, ?string $errorCategory = null, ?string $errorAddress = null, null|int|DateTimeInterface $minDate = null,
         null|int|DateTimeInterface $maxDate = null): int

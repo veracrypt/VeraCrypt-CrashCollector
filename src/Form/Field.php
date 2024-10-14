@@ -10,8 +10,8 @@ use Veracrypt\CrashCollector\Form\FieldConstraint as FC;
  */
 class Field
 {
-    protected $value;
-    protected $errorMessage;
+    protected mixed $value = null;
+    protected ?string $errorMessage = null;
 
     /**
      * NB: constraints are checked in the order they are defined
@@ -20,9 +20,25 @@ class Field
         public readonly string $label,
         public readonly string $inputName,
         public readonly string $inputType,
-        public readonly array $constraints = []
+        public readonly array $constraints = [],
+        mixed $value = null
     )
     {
+        $this->value = $value;
+        // constraint validation
+        foreach ($this->constraints as $constraint => $targetValue) {
+            switch ($constraint) {
+                case FC::Required:
+                    break;
+                case FC::MaxLength:
+                    if ($targetValue < 0) {
+                        throw new \DomainException("Unsupported field maxlength: $targetValue");
+                    }
+                    break;
+                default:
+                    throw new \DomainException("Unsupported field constraint: '$constraint");
+            }
+        }
     }
 
     /**
@@ -68,7 +84,6 @@ class Field
                     }
                     break;
                 case FC::MaxLength:
-                    /// @todo throw if $targetValue < 0
                     if ($targetValue > 0 && strlen($value) > $targetValue) {
                         $this->errorMessage = "Value should not be longer than {$targetValue} characters";
                         return false;
@@ -91,6 +106,16 @@ class Field
             'datetime' => new \DateTimeImmutable($this->value),
             default => $this->value,
         };
+    }
+
+    public function isRequired(): bool
+    {
+        return array_key_exists(FC::Required, $this->constraints) && $this->constraints[FC::Required];
+    }
+
+    public function getMaxLength(): ?int
+    {
+        return array_key_exists(FC::MaxLength, $this->constraints) ? (int)$this->constraints[FC::MaxLength] : null;
     }
 
     public function __get($name)

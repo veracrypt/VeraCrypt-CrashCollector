@@ -7,7 +7,7 @@ use Twig\Loader\FilesystemLoader as TwigFilesystemLoader;
 
 class Templating
 {
-    protected $twig;
+    protected TwigEnvironment $twig;
 
     public function __construct()
     {

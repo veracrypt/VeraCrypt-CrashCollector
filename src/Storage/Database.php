@@ -1,15 +1,14 @@
 <?php
 
-namespace Veracrypt\CrashCollector\Repository\Storage;
+namespace Veracrypt\CrashCollector\Storage;
 
 use PDO;
 
 trait Database
 {
-    /** @var PDO|null */
-    protected static $dbh;
+    protected static ?PDO $dbh = null;
     /** @var string[]|null */
-    protected static $tableDefs;
+    protected static ?array $tableDefs = null;
 
     /**
      * @throws \PDOException
@@ -28,7 +27,8 @@ trait Database
      *
      * @param string $tableName
      * @return bool
-     * @throws ...
+     * @throws \DomainException in case of unsupported database type
+     * @throws \PDOException
      */
     protected function tableExists(string $tableName): bool
     {
@@ -42,7 +42,7 @@ trait Database
      * List all db tables accessible to the current user.
      *
      * @return string[] value has to be the table name
-     * @throws \DomainException
+     * @throws \DomainException in case of unsupported database type
      * @throws \PDOException
      */
     protected function listTables(): array

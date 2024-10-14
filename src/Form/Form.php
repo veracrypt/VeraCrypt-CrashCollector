@@ -58,6 +58,7 @@ abstract class Form
         return $this->isValid;
     }
 
+    /// @todo if a hidden field is invalid, set $this->errorMessage to something (what?)
     public function handleRequest(?array $request = null): void
     {
         $this->isValid = true;
@@ -111,6 +112,12 @@ abstract class Form
             case self::ON_BOTH:
                 return array_merge($_GET, $_POST);
         }
+    }
+
+    public function setError(string $errorMessage)
+    {
+        $this->errorMessage = $errorMessage;
+        $this->isValid = false;
     }
 
     public function __get($name)

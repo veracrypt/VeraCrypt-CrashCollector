@@ -3,7 +3,10 @@
 {% block body %}
 {% import "parts/forms/macros.html.twig" as forms %}
 <div class="container">
-<h1>VeraCrypt Crash Reporter search</h1>
+<nav class="navbar">
+    <h1 class="navbar-brand"><img src="{{ root_url }}favicon.ico" alt="VeraCrypt" width="64" height="64">VeraCrypt Crash Reporter search</h1>
+    <p>Welcome {{ user.getUserIdentifier() }} | <a href="{{ logout_url }}">Logout</a></p>
+</nav>
 <form action="" method="{{ form.getMethod() }}" class="border p-3 rounded">
     {{ include('parts/forms/cr_common_fields.html.twig') }}
     <div class="row mb-3">

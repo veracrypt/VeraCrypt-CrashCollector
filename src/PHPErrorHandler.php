@@ -7,13 +7,13 @@ namespace Veracrypt\CrashCollector;
  */
 class PHPErrorHandler
 {
-    protected $errorTypesToHandle = array(
+    protected array $errorTypesToHandle = [
         E_ERROR => 'E_ERROR',
         E_PARSE => 'E_PARSE',
         E_USER_ERROR => 'E_USER_ERROR',
         E_COMPILE_ERROR => 'E_COMPILE_ERROR',
         E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
-    );
+    ];
 
     public function handle(): void
     {
@@ -64,7 +64,7 @@ class PHPErrorHandler
 
     /**
      * NB: this only works insofar at least the dotenv-based loading of env vars has succeeded
-     * @todo decide how to handle - log, email, other?
+     * @todo decide how to handle - log, email, Slack, other?
      */
     protected function notifyOfError(array $error): void
     {

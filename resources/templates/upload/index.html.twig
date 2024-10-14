@@ -3,14 +3,16 @@
 {% block body %}
 {% import "parts/forms/macros.html.twig" as forms %}
 <div class="container">
-<h1>VeraCrypt Crash Reporter</h1>
+<nav class="navbar">
+    <h1 class="navbar-brand"><img src="{{ root_url }}favicon.ico" alt="VeraCrypt" width="64" height="64">VeraCrypt Crash Reporter</h1>
+</nav>
 {% if form.isSubmitted() and form.isValid() %}
     <p class="text-success">Thank you for taking the time to submit the information and sorry for your hassles.</p>
 {% else %}
     <form action="{{ form_url }}" method="{{ form.getMethod() }}" class="border p-3 rounded">
         {{ include('parts/forms/cr_common_fields.html.twig') }}
         <div class="row mb-3">
-            {{ forms.input(form.getField('callStack'), {'label': 'col-sm-2 col-form-label', 'div': 'col-sm-10', 'input': 'form-control'}) }}
+            {{ forms.input(form.getField('callStack'), {'label': 'col-sm-2 col-form-label', 'div': 'col-sm-10', 'input': 'form-control'}, {'spellcheck': 'false'}) }}
         </div>
         <div class="row">
             {{ forms.input(form.getSubmit(), {'input': 'btn btn-primary form-control'}) }}
