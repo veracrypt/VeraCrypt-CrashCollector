@@ -2,7 +2,10 @@
 
 namespace Veracrypt\CrashCollector\Form;
 
+use Veracrypt\CrashCollector\Exception\AntiCSRFException;
 use Veracrypt\CrashCollector\Form\FieldConstraint as FC;
+use Veracrypt\CrashCollector\Logger;
+use Veracrypt\CrashCollector\Security\AntiCSRF;
 
 /**
  * @property-read ?string $value
@@ -10,12 +13,11 @@ use Veracrypt\CrashCollector\Form\FieldConstraint as FC;
  */
 class Field
 {
+    const SupportedFieldTypes = ['anticsrf', 'datetime', 'email', 'hidden', 'password', 'submit', 'text', 'textarea'];
+
     protected mixed $value = null;
     protected ?string $errorMessage = null;
 
-    /**
-     * NB: constraints are checked in the order they are defined
-     */
     public function __construct(
         public readonly string $label,
         public readonly string $inputName,
@@ -24,7 +26,14 @@ class Field
         mixed $value = null
     )
     {
-        $this->value = $value;
+        // type validation
+        if (!in_array($this->inputType, self::SupportedFieldTypes)) {
+            throw new \DomainException("Unsupported field type: $inputType");
+        }
+
+        /// @todo for 'anticsrf' fields, check that there are no constraints defined, as it does not check those anyway.
+        ///       Also, we should prevent those fields to be used on forms which submit via GET
+
         // constraint validation
         foreach ($this->constraints as $constraint => $targetValue) {
             switch ($constraint) {
@@ -39,21 +48,37 @@ class Field
                     throw new \DomainException("Unsupported field constraint: '$constraint");
             }
         }
+        $this->value = $value;
     }
 
     /**
-     * @param mixed $value
+     * Used to set (and validate) the submitted value.
+     * NB: constraints are checked in the order they are defined
      * @return bool false when the value is not valid
-     * @throws \DomainException
      */
     public function setValue(mixed $value): bool
     {
         $isValid = true;
 
-        if ($value !== null) {
+        if ($value !== null || $this->inputType === 'anticsrf') {
             $value = trim($value);
 
             switch($this->inputType) {
+                case 'anticsrf':
+                    // we always store null, so that the csrf token will be omitted from the form's getData
+                    $this->value = null;
+                    $antiCSRF = new AntiCSRF();
+                    try {
+                        /// @todo allow checking the token against the form it was generated on
+                        $antiCSRF->validateToken($value);
+                        return true;
+                    } catch (AntiCSRFException $e) {
+                        $this->errorMessage = 'The ANTI-CSRF token has been tampered or is missing';
+                        $logger = Logger::getInstance('audit');
+                        $logger->info('ANTI-CSRF token tampering attempt. ' . $e->getMessage());
+                        return false;
+                    }
+                    break;
                 case 'datetime':
                     if ($value !== '') {
                         if (strtotime($value) === false) {
@@ -89,8 +114,9 @@ class Field
                         return false;
                     }
                     break;
-                default:
-                    throw new \DomainException("Unsupported field constraint: '$constraint");
+                // this is checked at constructor time
+                //default:
+                //    throw new \DomainException("Unsupported field constraint: '$constraint");
             }
         }
 
@@ -121,6 +147,21 @@ class Field
     public function getMaxLength(): ?int
     {
         return array_key_exists(FC::MaxLength, $this->constraints) ? (int)$this->constraints[FC::MaxLength] : null;
+    }
+
+    public function isVisible(): bool
+    {
+        return !in_array($this->inputType, ['anticsrf', 'hidden']);
+    }
+
+    public function getAntiCSRFToken()
+    {
+        if ($this->inputType !== 'anticsrf') {
+            throw new \DomainException("getAntiCSRFToken called on form field of type '{$this->inputType}'");
+        }
+
+        $antiCSRF = new AntiCSRF();
+        return $antiCSRF->getToken();
     }
 
     public function __get($name)

@@ -9,7 +9,7 @@ abstract class CrashReportBaseForm extends BaseForm
 {
     protected bool $requireAllFieldsByDefault = false;
 
-    public function __construct()
+    public function __construct(string $actionUrl)
     {
         $this->fields = [
             /// @todo get the field lengths from the Repo fields
@@ -20,5 +20,7 @@ abstract class CrashReportBaseForm extends BaseForm
             'errorCategory' => new Field('Error category', 'ec', 'text', [FC::Required => $this->requireAllFieldsByDefault, FC::MaxLength => 255]),
             'errorAddress' => new Field('Error address', 'ea', 'text', [FC::Required => $this->requireAllFieldsByDefault, FC::MaxLength => 255]),
         ];
+
+        parent::__construct($actionUrl);
     }
 }

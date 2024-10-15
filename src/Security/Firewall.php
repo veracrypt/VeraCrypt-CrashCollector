@@ -140,8 +140,8 @@ class Firewall
         $router = new Router();
         $tpl = new Templating();
         echo $tpl->render('admin/login.html.twig', [
-            'form' => new LoginForm($successRedirectUrl),
-            'urls' => array_merge($this->getAdminUrls(), ['form' => $router->generate(__DIR__ . '/../../public/admin/login.php')]),
+            'form' => new LoginForm($router->generate(__DIR__ . '/../../public/admin/login.php'), $successRedirectUrl),
+            'urls' => $this->getAdminUrls(),
         ]);
     }
 

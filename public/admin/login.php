@@ -11,7 +11,7 @@ use Veracrypt\CrashCollector\Security\UsernamePasswordAuthenticator;
 use Veracrypt\CrashCollector\Templating;
 
 $router = new Router();
-$form = new LoginForm($router->generate(__DIR__ . '/index.php'));
+$form = new LoginForm($router->generate(__FILE__), $router->generate(__DIR__ . '/index.php'));
 
 if ($form->isSubmitted()) {
     $form->handleRequest();
@@ -43,5 +43,5 @@ $firewall = Firewall::getInstance();
 $tpl = new Templating();
 echo $tpl->render('admin/login.html.twig', [
     'form' => $form,
-    'urls' => array_merge($firewall->getAdminUrls(), ['form' => $router->generate(__FILE__)]),
+    'urls' => $firewall->getAdminUrls(),
 ]);

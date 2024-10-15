@@ -12,14 +12,18 @@ class ResetPasswordForm extends Form
 {
     protected UserInterface $currentUser;
 
-    public function __construct(UserInterface $currentUser)
+    public function __construct(string $actionUrl, UserInterface $currentUser)
     {
         $this->fields = [
+            /// @todo add min pwd length constraints, maybe even a regex?
             'oldPassword' => new Field('Current Password', 'cp', 'password', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
             'newPassword' => new Field('New Password', 'np', 'password', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
             'newPasswordConfirm' => new Field('Confirm new Password', 'npc', 'password', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
+            'antiCSRF' => new Field('', 'ac', 'anticsrf'),
         ];
         $this->currentUser = $currentUser;
+
+        parent::__construct($actionUrl);
     }
 
     public function handleRequest(?array $request = null): void
@@ -27,8 +31,10 @@ class ResetPasswordForm extends Form
         parent::handleRequest($request);
 
         if ($this->isValid) {
-            if ($this->fields['newPassword']->getData() !== $this->fields['newPasswordConfirm']->getData()) {
-                $this->fields['newPasswordConfirm']->setError('The password does not match');
+            /** @var Field $npcField */
+            $npcField =& $this->fields['newPasswordConfirm'];
+            if ($this->fields['newPassword']->getData() !== $npcField->getData()) {
+                $npcField->setError('The password does not match');
                 $this->isValid = false;
             } else {
                 $authenticator = new UsernamePasswordAuthenticator();

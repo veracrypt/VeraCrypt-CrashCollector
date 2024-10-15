@@ -23,7 +23,7 @@ try {
     exit();
 }
 
-$form = new ResetPasswordForm($user);
+$form = new ResetPasswordForm($router->generate(__FILE__), $user);
 if ($form->isSubmitted()) {
     $form->handleRequest();
     if ($form->isValid()) {
@@ -36,5 +36,5 @@ if ($form->isSubmitted()) {
 echo $tpl->render('admin/resetpassword.html.twig', [
     'user' => $user,
     'form' => $form,
-    'urls' => array_merge($firewall->getAdminUrls(), ['form' => $router->generate(__FILE__)]),
+    'urls' => $firewall->getAdminUrls(),
 ]);

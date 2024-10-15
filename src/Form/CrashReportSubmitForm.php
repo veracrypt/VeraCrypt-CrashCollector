@@ -8,9 +8,9 @@ class CrashReportSubmitForm extends CrashReportBaseForm
 {
     protected bool $requireAllFieldsByDefault = true;
 
-    public function __construct()
+    public function __construct(string $actionUrl)
     {
-        parent::__construct();
+        parent::__construct($actionUrl);
         $this->fields['callStack'] = new Field('Call stack', 'cs', 'textarea', [FC::Required => $this->requireAllFieldsByDefault]);
     }
 }

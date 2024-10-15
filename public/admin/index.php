@@ -38,7 +38,7 @@ if ($pageNum < 0) {
     $pageNum = 0;
 }
 
-$form = new CrashReportSearchForm();
+$form = new CrashReportSearchForm($router->generate(__FILE__));
 if ($form->isSubmitted()) {
     $form->handleRequest();
     if ($form->isValid()) {
@@ -54,6 +54,6 @@ echo $tpl->render('admin/index.html.twig', [
     'user' => $user, 'form' => $form, 'reports' => $reports, 'num_reports' => $numReports, 'current_page' => $pageNum,
     'page_size' => $pageSize, 'num_pages' => ceil($numReports / $pageSize), 'page_sizes' => $pageSizes,
     'urls' => array_merge($firewall->getAdminUrls(), [
-        'form' => $router->generate(__FILE__, $form->getQueryStringParts(true))
+        'paginator' => $router->generate(__FILE__, $form->getQueryStringParts(true))
     ]),
 ]);

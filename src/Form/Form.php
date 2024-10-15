@@ -4,6 +4,7 @@ namespace Veracrypt\CrashCollector\Form;
 
 /**
  * @property-read ?string $errorMessage
+ * @property-read string $actionUrl
  */
 abstract class Form
 {
@@ -11,12 +12,18 @@ abstract class Form
     const ON_POST = 2;
     const ON_BOTH = 3;
 
-    /** @var Field[] */
+    /** @var Field[] $fields */
     protected array $fields = [];
     protected string $submitLabel = 'Submit';
     protected int $submitOn = self::ON_POST;
     protected bool $isValid = false;
-    protected string $errorMessage;
+    protected ?string $errorMessage = null;
+    protected string $actionUrl;
+
+    public function __construct(string $actionUrl)
+    {
+        $this->actionUrl = $actionUrl;
+    }
 
     /**
      * @throws \DomainException
@@ -39,9 +46,7 @@ abstract class Form
 
     public function getSubmit(): Field
     {
-        $f = new Field($this->submitLabel, 's', 'submit');
-        $f->setValue(1);
-        return $f;
+        return new Field($this->submitLabel, 's', 'submit', [], 1);
     }
 
     public function isSubmitted(?array $request = null): bool
@@ -58,7 +63,6 @@ abstract class Form
         return $this->isValid;
     }
 
-    /// @todo if a hidden field is invalid, set $this->errorMessage to something (what?)
     public function handleRequest(?array $request = null): void
     {
         $this->isValid = true;
@@ -67,6 +71,9 @@ abstract class Form
         }
         foreach($this->fields as &$field) {
             if (!$field->setValue(array_key_exists($field->inputName, $request) ? $request[$field->inputName] : null)) {
+                if (!$field->isVisible()) {
+                    $this->setError($field->errorMessage);
+                }
                 $this->isValid = false;
             }
         }
@@ -123,6 +130,7 @@ abstract class Form
     public function __get($name)
     {
         switch ($name) {
+            case 'actionUrl':
             case 'errorMessage':
                 return $this->$name;
             default:
@@ -135,6 +143,7 @@ abstract class Form
     public function __isset($name)
     {
         return match ($name) {
+            'actionUrl' => true,
             'errorMessage' => isset($this->$name),
             default => false
         };

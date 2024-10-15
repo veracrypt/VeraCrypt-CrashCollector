@@ -10,7 +10,7 @@ class LoginForm extends BaseForm
 {
     protected string $submitLabel = 'Login';
 
-    public function __construct(string $redirect)
+    public function __construct(string $actionUrl, string $redirect)
     {
         $this->fields = [
             /// @todo get the field length from the Repo fields
@@ -18,5 +18,7 @@ class LoginForm extends BaseForm
             'password' => new Field('Password', 'pw', 'password', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
             'redirect' => new Field('', 'r', 'hidden', [FC::Required => true], $redirect)
         ];
+
+        parent::__construct($actionUrl);
     }
 }

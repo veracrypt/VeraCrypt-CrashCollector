@@ -7,7 +7,8 @@ use Veracrypt\CrashCollector\Repository\CrashReportRepository;
 use Veracrypt\CrashCollector\Router;
 use Veracrypt\CrashCollector\Templating;
 
-$form = new CrashReportSubmitForm();
+$router = new Router();
+$form = new CrashReportSubmitForm($router->generate(__FILE__));
 
 // allow to pre-fill form fields using GET request, but only act on POST
 if ($form->isSubmitted()) {
@@ -22,9 +23,8 @@ if ($form->isSubmitted()) {
     $form->handleRequest($_GET);
 }
 
-$router = new Router();
 $tpl = new Templating();
 echo $tpl->render('upload/index.html.twig', [
     'form' => $form,
-    'urls' => ['form' => $router->generate(__FILE__), 'root' => $router->generate(__DIR__ . '/..')],
+    'urls' => ['root' => $router->generate(__DIR__ . '/..')],
 ]);
