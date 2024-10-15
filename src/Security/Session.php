@@ -15,10 +15,10 @@ class Session
 
     /**
      * NB: we could allow passing in an optional instance of \SessionHandlerInterface, and provide a default one which
-     * stores session data in the same database used for the CR data (or a separate sqlite file).
+     * stores session data in the same database used for the CR data (or, preferably, a separate sqlite file).
      * However, SQLite does not support row level locks but locks the whole database, with the results that only
      * one session could be accessed at a time. Even different sessions would wait for another to finish. So saving
-     * sessions in SQLite is not recommended.
+     * sessions in SQLite is not recommended, unless we also use session autocommit.
      */
     protected function __construct()
     {
@@ -31,7 +31,7 @@ class Session
         // for both reading and writing for the whole duration of the php script. In order to improve concurrency,
         // one option could be to use the `read_and_close` option for the `session_start` call.
         // However, it seems that doing so has negative effects when the session GC is triggered via an external
-        // cronjob instead of via session.gc_probability, as used by default on Debian/Ubuntu.
+        // cronjob instead of via session.gc_probability, as configured by default on Debian/Ubuntu.
         // See: https://stackoverflow.com/questions/37789172/php-session-randomly-dies-when-read-and-close-is-active
         /// @todo should we allow values for session-related options be set via .env?
         $this->sessionOptions = [
@@ -43,10 +43,10 @@ class Session
     public function regenerate(): void
     {
         /// @todo check: if there is already a session, should we remove existing csrf tokens from the storage?
-        /// @todo Should we delete the previous session data? See example 2 at
+        /// @todo Should we delete the previous session data, passing in $true, or keep the old session around? See example 2 at
         ///       https://www.php.net/manual/en/function.session-regenerate-id.php#refsect1-function.session-regenerate-id-examples
-        ///       for the recommended way to generate new session ids while leaving the old session available for a
-        ///       little while, to avoid issues with unstable networks and race conditions between requests
+        ///       for the recommended way to generate new session ids while avoiding issues with unstable networks and
+        ///       race conditions between requests
         session_regenerate_id();
     }
 
@@ -58,6 +58,8 @@ class Session
             session_destroy();
         }
 
+        $this->sessionStarted = false;
+
         // Expire the session cookie.
         // Note that, in theory at least, this is not required when session.strict_mode is enabled (which we _try_ to force),
         // as subsequent requests with the same session id cookie will not trigger creation of a session.
@@ -68,8 +70,6 @@ class Session
             unset($params['lifetime']);
             setcookie($sessionName, '', $params);
         }
-
-        $this->sessionStarted = false;
     }
 
     /**

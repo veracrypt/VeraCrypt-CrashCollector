@@ -5,11 +5,12 @@ namespace Veracrypt\CrashCollector\Storage;
 trait Session
 {
     protected bool $sessionStarted = false;
-    private bool $doAutoCommit = false;
     protected array $sessionOptions = [];
+    private bool $doAutoCommit = false;
 
     /**
-     * @throws \RuntimeException
+     * @throws \RuntimeException if the session was not yet started and either http headers have already been sent, or
+     *                           (presumably) the session storage fails
      */
     public function set(string|int $key, mixed $value): void
     {
@@ -25,9 +26,11 @@ trait Session
     }
 
     /**
-     * @todo cache the whole of $_SESSION in memory so that we can avoid further calls to session_start on later calls
-     *       (and either add a $forceRefresh argument, or a separate `refresh` method)
-     * @throws \RuntimeException
+     * @todo we could cache the whole of $_SESSION in memory so that we can avoid further calls to session_start on later
+     *       calls to get (and either add a $forceRefresh argument, or a separate `refresh` method). This is esp.
+     *       useful when in autocommit mode
+     * @throws \RuntimeException if the session was not yet started and either http headers have already been sent, or
+     *                           (presumably) the session storage fails
      */
     public function get(string|int $key, mixed $default = null): mixed
     {
@@ -47,18 +50,23 @@ trait Session
     }
 
     /**
-     * @throws \RuntimeException
+     * @throws \RuntimeException if the session was not yet started and either http headers have already been sent, or
+     *                           (presumably) the session storage fails
      */
     protected function startSession(): void
     {
         if (\PHP_SESSION_NONE === session_status()) {
 
-            /// @todo should we throw if headers_sent() returns true?
+            // we throw to avoid the php warning 'Session cannot be started after headers have already been sent'
+            // which would be generated later by calling `session start`
+            if (headers_sent()) {
+                throw new \RuntimeException('Session cannot be started after headers have already been sent');
+            }
 
-            /// @todo look if there is a cookie matching `session_name()`. If there is, validate that the session_id
-            ///       matches a regexp like `/^[a-zA-Z0-9,-]{22,250}$/` (but built upon live values of session.sid_bits_per_character
-            ///       and session.sid_length) and if it does not, call `session_id(session_create_id())`
-            ///       see Sf NativeSessionStorage::start for an explanation
+            // NB: in case we did not enforce use_strict_mode, we could look if there is a cookie matching `session_name()`.
+            // If there is, validate that the session_id matches a regexp like `/^[a-zA-Z0-9,-]{22,250}$/` (but built upon
+            // live values of session.sid_bits_per_character and session.sid_length) and if it does not, call
+            // `session_id(session_create_id())` and log the event. See Sf NativeSessionStorage::start for an explanation
 
             /// @todo once we have improved `regenerate` so that it keeps around the old session and adds specific
             ///       data to it, check here for its presence

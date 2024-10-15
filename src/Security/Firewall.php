@@ -44,7 +44,7 @@ class Firewall
                 $user = $userProvider->loadUserByIdentifier($username);
                 if ($user->isActive()) {
                     $this->user = $user;
-                    /// @todo here we could add $session->commit();
+                    /// @todo here we could add $session->commit() - or use autocommitting sessions
                     return;
                 }
             } catch (UserNotFoundException $e) {
@@ -84,7 +84,7 @@ class Firewall
             $session->regenerate();
         }
         $session->set($this->storageKey, $user->getUserIdentifier());
-        /// @todo here we could add $session->commit();
+        /// @todo here we could add $session->commit() - or use autocommitting sessions
 
         if ($user instanceof User) {
             $repo = new UserRepository();
@@ -127,8 +127,8 @@ class Firewall
 
     public function displayAdminLoginPage(string $successRedirectUrl): void
     {
-        /// @todo should we give some info or warning if the user is logged in already? Eg. if this is used to
-        ///       display the login form on a page which requires admin perms...
+        /// @todo should we give some info or warning if the user is logged in already? Eg. if this is used to display
+        ///       the login form on a page which requires admin perms...
 
         // avoid browsers and proxies caching the login-form version of the current page - we send he same no-cache headers
         // as sent by php when setting session_cache_limiter to nocache
