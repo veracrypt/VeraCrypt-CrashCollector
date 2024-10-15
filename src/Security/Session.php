@@ -20,7 +20,7 @@ class Session
      * one session could be accessed at a time. Even different sessions would wait for another to finish. So saving
      * sessions in SQLite is not recommended.
      */
-    protected function __construct(bool $autoCommit = false)
+    protected function __construct()
     {
         if (!\extension_loaded('session')) {
             throw new \LogicException('PHP extension "session" is required');
@@ -38,8 +38,6 @@ class Session
             'use_strict_mode' => 1, 'use_cookies' => 1, 'use_only_cookies' => 1, 'cookie_httponly' => 1,
             'cookie_samesite' => 'Strict'/*, 'cache_limiter' => '', 'cache_expire' => 0*/, 'use_trans_sid' => 0, 'lazy_write' => 1,
         ];
-
-        $this->autoCommit($autoCommit);
     }
 
     public function regenerate(): void

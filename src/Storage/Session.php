@@ -60,7 +60,7 @@ trait Session
             ///       and session.sid_length) and if it does not, call `session_id(session_create_id())`
             ///       see Sf NativeSessionStorage::start for an explanation
 
-            /// @todo once we have implemented `regenerate` so that it keeps around the old session and adds specific
+            /// @todo once we have improved `regenerate` so that it keeps around the old session and adds specific
             ///       data to it, check here for its presence
 
             if (!session_start($this->sessionOptions)) {
@@ -74,7 +74,7 @@ trait Session
     /**
      * Sets/gets the autocommit mode
      */
-    protected function autoCommit(?bool $autoCommit): bool
+    public function autoCommit(?bool $autoCommit): bool
     {
         if ($autoCommit !== null) {
             $this->doAutoCommit = $autoCommit;
