@@ -2,10 +2,13 @@
 
 namespace Veracrypt\CrashCollector\Security;
 
+use Veracrypt\CrashCollector\Entity\User;
 use Veracrypt\CrashCollector\Entity\UserRole;
 use Veracrypt\CrashCollector\Exception\AuthorizationException;
 use Veracrypt\CrashCollector\Exception\UserNotFoundException;
 use Veracrypt\CrashCollector\Form\LoginForm;
+use Veracrypt\CrashCollector\Logger;
+use Veracrypt\CrashCollector\Repository\UserRepository;
 use Veracrypt\CrashCollector\Router;
 use Veracrypt\CrashCollector\Singleton;
 use Veracrypt\CrashCollector\Templating;
@@ -47,8 +50,11 @@ class Firewall
             } catch (UserNotFoundException $e) {
             }
 
-            // the current user disappeared from the db or got invalidated - clean up the session stuff
+            // the current user either disappeared from the db or got invalidated - clean up the session stuff
             $this->logoutUser(true);
+
+            $logger = Logger::getInstance('audit');
+            $logger->debug("A session for user '$username' has been forcibly terminated as his/her profile was updated");
         }
     }
 
@@ -79,6 +85,16 @@ class Firewall
         }
         $session->set($this->storageKey, $user->getUserIdentifier());
         /// @todo here we could add $session->commit();
+
+        if ($user instanceof User) {
+            $repo = new UserRepository();
+            try {
+                $repo->userLoggedIn($user->username);
+            } catch (\PDOException) {
+                $logger = Logger::getInstance('audit');
+                $logger->warning("Failed updating last login time for user '{$user->username}'");
+            }
+        }
     }
 
     public function logoutUser(bool $force = false): void

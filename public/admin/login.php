@@ -4,6 +4,7 @@ require_once(__DIR__ . '/../../autoload.php');
 
 use Veracrypt\CrashCollector\Exception\AuthenticationException;
 use Veracrypt\CrashCollector\Form\LoginForm;
+use Veracrypt\CrashCollector\Logger;
 use Veracrypt\CrashCollector\Router;
 use Veracrypt\CrashCollector\Security\UsernamePasswordAuthenticator;
 use Veracrypt\CrashCollector\Templating;
@@ -19,6 +20,8 @@ if ($form->isSubmitted()) {
         $redirectUrl = $data['redirect'];
         if (!$router->match($redirectUrl)) {
             $form->setError('Tsk tsk tsk');
+            $logger = Logger::getInstance('audit');
+            $logger->warning("Hacking attempt: login fom submitted with invalid redirect url '$redirectUrl'");
         } else {
             unset($data['redirect']);
             try {

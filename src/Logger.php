@@ -9,6 +9,8 @@ class Logger extends AbstractLogger
 {
     protected $logFile;
     protected $logLevel;
+    /** @var Logger[] $_loggers  */
+    protected static array $_loggers = [];
 
     // same weights as monolog
     protected $levelWeights = [
@@ -21,6 +23,26 @@ class Logger extends AbstractLogger
         LogLevel::ALERT => 550,
         LogLevel::EMERGENCY => 600,
     ];
+
+    /**
+     * Loggers do not really need to be singletons, but doing things this way helps with keeping the configuration
+     * for each logger tucked up neatly in a single place
+     * @throws \DomainException
+     */
+    public static function getInstance(string $name): Logger
+    {
+        if (!array_key_exists($name, self::$_loggers)) {
+            switch ($name) {
+                case 'audit':
+                    self::$_loggers[$name] = new self($_ENV['AUDIT_LOG_FILE'], $_ENV['AUDIT_LOG_LEVEL']);
+                    break;
+                default:
+                    throw new \DomainException("Logger '$name' in not configured");
+            }
+        }
+
+        return self::$_loggers[$name];
+    }
 
     public function __construct(string|\Stringable $logFile, $logLevel)
     {

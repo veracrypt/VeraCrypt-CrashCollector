@@ -3,11 +3,13 @@
 namespace Veracrypt\CrashCollector\Repository;
 
 use Veracrypt\CrashCollector\Entity\User;
+use Veracrypt\CrashCollector\Logger;
 use Veracrypt\CrashCollector\Repository\FieldConstraint as FC;
 
 class UserRepository extends Repository
 {
     protected string $tableName = 'auth_user';
+    protected Logger $logger;
 
     /**
      * @throws \DomainException in case of unsupported database type
@@ -30,6 +32,7 @@ class UserRepository extends Repository
             //'is_staff' => new Field('isStaff', 'bool', [FC::NotNull => true, FC::Default => 'false']),
             'is_superuser' => new Field('isSuperuser', 'bool', [FC::NotNull => true, FC::Default => 'false']),
         ];
+        $this->logger = Logger::getInstance('audit');
 
         parent::__construct();
     }
@@ -44,6 +47,7 @@ class UserRepository extends Repository
         $dateJoined = time();
         $user = new User($username, $passwordHash, $email, $firstName, $lastName, $dateJoined, null, $isActive, $isSuperUser);
         $this->storeEntity($user);
+        $this->logger->debug("User '$username' was created");
         return $user;
     }
 
@@ -104,7 +108,11 @@ class UserRepository extends Repository
         }
         $stmt->bindValue(":username", $username);
         $stmt->execute();
-        return (bool)$stmt->rowCount();
+        $updated = (bool)$stmt->rowCount();
+        if ($updated) {
+            $this->logger->debug("User '$username' was updated");
+        }
+        return $updated;
     }
 
     /**
@@ -116,34 +124,49 @@ class UserRepository extends Repository
         $stmt = self::$dbh->prepare($query);
         $stmt->bindValue(':username', $username);
         $stmt->execute();
-        return (bool)$stmt->rowCount();
+        $deleted = (bool)$stmt->rowCount();
+        if ($deleted) {
+            $this->logger->debug("User '$username' was deleted");
+        }
+        return $deleted;
     }
 
     /**
+     * NB: this returns false if the user exists and if it was already activated
      * @throws \PDOException
      */
     public function activateUser(string $username): bool
     {
-        $query = 'update ' . $this->tableName . ' set is_active = true where username = :username';
+        $query = 'update ' . $this->tableName . ' set is_active = true where username = :username and is_active = false';
         $stmt = self::$dbh->prepare($query);
         $stmt->bindValue(':username', $username);
         $stmt->execute();
-        return (bool)$stmt->rowCount();
+        $activated = (bool)$stmt->rowCount();
+        if ($activated) {
+            $this->logger->debug("User '$username' was activated");
+        }
+        return $activated;
     }
 
     /**
+     * NB: this returns false if the user exists and it was already deactivated
      * @throws \PDOException
      */
     public function deactivateUser(string $username): bool
     {
-        $query = 'update ' . $this->tableName . ' set is_active = false where username = :username';
+        $query = 'update ' . $this->tableName . ' set is_active = false where username = :username and is_active = true';
         $stmt = self::$dbh->prepare($query);
         $stmt->bindValue(':username', $username);
         $stmt->execute();
-        return (bool)$stmt->rowCount();
+        $deactivated = (bool)$stmt->rowCount();
+        if ($deactivated) {
+            $this->logger->debug("User '$username' was deactivated");
+        }
+        return $deactivated;
     }
 
     /**
+     * Call this when the user logged in
      * @throws \PDOException
      */
     public function userLoggedIn(string $username): bool

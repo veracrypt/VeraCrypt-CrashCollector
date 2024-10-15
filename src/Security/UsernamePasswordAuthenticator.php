@@ -2,7 +2,6 @@
 
 namespace Veracrypt\CrashCollector\Security;
 
-use Veracrypt\CrashCollector\Entity\User;
 use Veracrypt\CrashCollector\Exception\AccountExpiredException;
 use Veracrypt\CrashCollector\Exception\AuthenticationException;
 use Veracrypt\CrashCollector\Exception\BadCredentialsException;
@@ -22,7 +21,7 @@ class UsernamePasswordAuthenticator
     {
         $this->userProvider = new UserProvider();
         $this->passwordHasher = new PasswordHasher();
-        $this->logger = new Logger($_ENV['AUDIT_LOG_FILE'], $_ENV['AUDIT_LOG_LEVEL']);
+        $this->logger = Logger::getInstance('audit');
     }
 
     /**
