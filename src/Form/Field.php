@@ -97,6 +97,11 @@ class Field
         return true;
     }
 
+    public function setError(string $erroMessage)
+    {
+        $this->errorMessage = $erroMessage;
+    }
+
     public function getData(): null|string|\DateTimeImmutable
     {
         if ($this->value === null) {

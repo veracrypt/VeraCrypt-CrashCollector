@@ -1,12 +1,8 @@
 {% extends "base.html.twig" %}
 
-{% block body %}
+{% block content %}
 {% import "parts/forms/macros.html.twig" as forms %}
 <div class="container">
-<nav class="navbar">
-    <h1 class="navbar-brand"><img src="{{ root_url }}favicon.ico" alt="VeraCrypt" width="64" height="64">VeraCrypt Crash Reporter search</h1>
-    <p>Welcome {{ user.getUserIdentifier() }} | <a href="{{ logout_url }}">Logout</a></p>
-</nav>
 <form action="" method="{{ form.getMethod() }}" class="border p-3 rounded">
     {{ include('parts/forms/cr_common_fields.html.twig') }}
     <div class="row mb-3">
@@ -33,7 +29,7 @@
 <div class="container">
 {% if form.isSubmitted() and form.isValid() %}
 <p>Found {{ num_reports }} crash reports{% if num_reports > page_size %}, showing {{ page_size }} per page{% endif %}</p>
-{{ forms.paginator(current_page, num_pages, form_url) }}
+{{ forms.paginator(current_page, num_pages, urls.form) }}
 <table class="table">
 <thead>
     <tr>
@@ -64,7 +60,7 @@
     {% endfor %}
 </tbody>
 </table>
-{{ forms.paginator(current_page, num_pages, form_url) }}
+{{ forms.paginator(current_page, num_pages, urls.form) }}
 
 {% else %}
     Note: accepted wildcard characters are the ones for SQL LIKE statements: '_' for any one char, and '?' for zero or more chars

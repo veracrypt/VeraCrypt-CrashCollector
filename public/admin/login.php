@@ -3,6 +3,7 @@
 require_once(__DIR__ . '/../../autoload.php');
 
 use Veracrypt\CrashCollector\Exception\AuthenticationException;
+use Veracrypt\CrashCollector\Security\Firewall;
 use Veracrypt\CrashCollector\Form\LoginForm;
 use Veracrypt\CrashCollector\Logger;
 use Veracrypt\CrashCollector\Router;
@@ -38,7 +39,9 @@ if ($form->isSubmitted()) {
     /// @todo should we give some info or warning if the user is logged in already?
 }
 
+$firewall = Firewall::getInstance();
 $tpl = new Templating();
 echo $tpl->render('admin/login.html.twig', [
-    'form' => $form, 'form_url' => $router->generate(__FILE__), 'root_url' => $router->generate(__DIR__ . '/..')
+    'form' => $form,
+    'urls' => array_merge($firewall->getAdminUrls(), ['form' => $router->generate(__FILE__)]),
 ]);

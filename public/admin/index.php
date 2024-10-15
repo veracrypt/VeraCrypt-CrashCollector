@@ -51,8 +51,9 @@ if ($form->isSubmitted()) {
 }
 
 echo $tpl->render('admin/index.html.twig', [
-    'form' => $form, 'reports' => $reports, 'num_reports' => $numReports, 'current_page' => $pageNum,
+    'user' => $user, 'form' => $form, 'reports' => $reports, 'num_reports' => $numReports, 'current_page' => $pageNum,
     'page_size' => $pageSize, 'num_pages' => ceil($numReports / $pageSize), 'page_sizes' => $pageSizes,
-    'form_url' => $router->generate(__FILE__, $form->getQueryStringParts(true)), 'user' => $user,
-    'logout_url' => $router->generate(__DIR__ . '/logout.php'), 'root_url' => $router->generate(__DIR__ . '/..'),
+    'urls' => array_merge($firewall->getAdminUrls(), [
+        'form' => $router->generate(__FILE__, $form->getQueryStringParts(true))
+    ]),
 ]);

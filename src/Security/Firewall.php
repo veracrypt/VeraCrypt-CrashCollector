@@ -141,7 +141,22 @@ class Firewall
         $tpl = new Templating();
         echo $tpl->render('admin/login.html.twig', [
             'form' => new LoginForm($successRedirectUrl),
-            'form_url' => $router->generate(__DIR__ . '/../../public/admin/login.php'), 'root_url' => $router->generate(__DIR__ . '/../../public')
+            'urls' => array_merge($this->getAdminUrls(), ['form' => $router->generate(__DIR__ . '/../../public/admin/login.php')]),
         ]);
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getAdminUrls(): array
+    {
+        $router = new Router();
+        return [
+            'root' => $router->generate(__DIR__ . '/../../public'),
+            'home' => $router->generate(__DIR__ . '/../../public/admin/index.php'),
+            'login' => $router->generate(__DIR__ . '/../../public/admin/login.php'),
+            'logout' => $router->generate(__DIR__ . '/../../public/admin/logout.php'),
+            'resetpassword' => $router->generate(__DIR__ . '/../../public/admin/resetpassword.php'),
+        ];
     }
 }

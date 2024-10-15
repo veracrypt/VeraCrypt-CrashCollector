@@ -18,6 +18,6 @@ class AnonymousUser implements UserInterface
 
     public function isActive(): bool
     {
-        return true;
+        return false;
     }
 }
