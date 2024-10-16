@@ -52,7 +52,8 @@ class AntiCSRF
             'created' => time(),
             'token' => $token,
             'lockTo' => $lockTo,
-            'uri' => isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['SCRIPT_NAME'],
+            // debugging info
+            //'uri' => isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : $_SERVER['SCRIPT_NAME'],
         ]];
     }
 
