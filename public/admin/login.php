@@ -16,15 +16,16 @@ $form = new LoginForm($router->generate(__FILE__), $router->generate(__DIR__ . '
 if ($form->isSubmitted()) {
     $form->handleRequest();
     if ($form->isValid()) {
-        $authenticator = new UsernamePasswordAuthenticator();
         $data = $form->getData();
         $redirectUrl = $data['redirect'];
+        /// @todo we should move this validation to the LoginForm
         if (!$router->match($redirectUrl)) {
             $form->setError('Tsk tsk tsk');
             $logger = Logger::getInstance('audit');
             $logger->warning("Hacking attempt: login fom submitted with invalid redirect url '$redirectUrl'");
         } else {
             unset($data['redirect']);
+            $authenticator = new UsernamePasswordAuthenticator();
             try {
                 $authenticator->authenticate(...$data);
                 header('Location: ' . $redirectUrl, true, 303);

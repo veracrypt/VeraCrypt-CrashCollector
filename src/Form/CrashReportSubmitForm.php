@@ -11,6 +11,6 @@ class CrashReportSubmitForm extends CrashReportBaseForm
     public function __construct(string $actionUrl)
     {
         parent::__construct($actionUrl);
-        $this->fields['callStack'] = new Field('Call stack', 'cs', 'textarea', [FC::Required => $this->requireAllFieldsByDefault]);
+        $this->fields['callStack'] = new Field\TextArea('Call stack', 'cs', [FC::Required => $this->requireAllFieldsByDefault]);
     }
 }

@@ -16,38 +16,34 @@ class ResetPasswordForm extends Form
     {
         $this->fields = [
             /// @todo add min pwd length constraints, maybe even a regex?
-            'oldPassword' => new Field('Current Password', 'cp', 'password', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
-            'newPassword' => new Field('New Password', 'np', 'password', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
-            'newPasswordConfirm' => new Field('Confirm new Password', 'npc', 'password', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
-            'antiCSRF' => new Field('', 'ac', 'anticsrf'),
+            'oldPassword' => new Field\Password('Current Password', 'cp', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
+            'newPassword' => new Field\Password('New Password', 'np', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
+            'newPasswordConfirm' => new Field\Password('Confirm new Password', 'npc', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
+            'antiCSRF' => new Field\AntiCSRF('ac', $actionUrl),
         ];
         $this->currentUser = $currentUser;
 
         parent::__construct($actionUrl);
     }
 
-    public function handleRequest(?array $request = null): void
+    protected function validateSubmit(?array $request = null): void
     {
-        parent::handleRequest($request);
-
-        if ($this->isValid) {
-            /** @var Field $npcField */
-            $npcField =& $this->fields['newPasswordConfirm'];
-            if ($this->fields['newPassword']->getData() !== $npcField->getData()) {
-                $npcField->setError('The password does not match');
+        /** @var Field $npcField */
+        $npcField =& $this->fields['newPasswordConfirm'];
+        if ($this->fields['newPassword']->getData() !== $npcField->getData()) {
+            $npcField->setError('The password does not match');
+            $this->isValid = false;
+        } else {
+            $authenticator = new UsernamePasswordAuthenticator();
+            try {
+                $authenticator->authenticate($this->currentUser->getUserIdentifier(), $this->fields['oldPassword']->getData());
+            } catch (BadCredentialsException) {
+                $this->fields['oldPassword']->setError('The current password is wrong');
                 $this->isValid = false;
-            } else {
-                $authenticator = new UsernamePasswordAuthenticator();
-                try {
-                    $authenticator->authenticate($this->currentUser->getUserIdentifier(), $this->fields['oldPassword']->getData());
-                } catch (BadCredentialsException) {
-                    $this->fields['oldPassword']->setError('The current password is wrong');
-                    $this->isValid = false;
-                }
-                /// @todo what to do in case we get an AccountExpiredException or UserNotFoundException?
-                ///       This can happen, hopefully infrequently, when the form is displayed to a user still active, and
-                ///       then submitted after the user got deactivated/deleted
             }
+            /// @todo what to do in case we get an AccountExpiredException or UserNotFoundException?
+            ///       This can happen, hopefully infrequently, when the form is displayed to a user still active, and
+            ///       then submitted after the user got deactivated/deleted
         }
     }
 }

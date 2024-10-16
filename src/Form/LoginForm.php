@@ -14,9 +14,9 @@ class LoginForm extends BaseForm
     {
         $this->fields = [
             /// @todo get the field length from the Repo fields
-            'username' => new Field('Username', 'un', 'text', [FC::Required => true, FC::MaxLength => 180]),
-            'password' => new Field('Password', 'pw', 'password', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
-            'redirect' => new Field('', 'r', 'hidden', [FC::Required => true], $redirect)
+            'username' => new Field\Text('Username', 'un', [FC::Required => true, FC::MaxLength => 180]),
+            'password' => new Field\Password('Password', 'pw', [FC::Required => true, FC::MaxLength => PasswordHasher::MAX_PASSWORD_LENGTH]),
+            'redirect' => new Field\Hidden('r', [FC::Required => true], $redirect)
         ];
 
         parent::__construct($actionUrl);

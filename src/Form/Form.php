@@ -2,6 +2,8 @@
 
 namespace Veracrypt\CrashCollector\Form;
 
+use Veracrypt\CrashCollector\Form\Field\SubmitButton;
+
 /**
  * @property-read ?string $errorMessage
  * @property-read string $actionUrl
@@ -46,7 +48,7 @@ abstract class Form
 
     public function getSubmit(): Field
     {
-        return new Field($this->submitLabel, 's', 'submit', [], 1);
+        return new SubmitButton($this->submitLabel, 's', [], 1);
     }
 
     public function isSubmitted(?array $request = null): bool
@@ -71,12 +73,27 @@ abstract class Form
         }
         foreach($this->fields as &$field) {
             if (!$field->setValue(array_key_exists($field->inputName, $request) ? $request[$field->inputName] : null)) {
-                if (!$field->isVisible()) {
+                // in case the field is not shown to the end user, we show its error message as the form's error message
+                if (!$field->isVisible) {
                     $this->setError($field->errorMessage);
                 }
                 $this->isValid = false;
             }
         }
+
+        if ($this->isValid()) {
+            $this->validateSubmit($request);
+        }
+    }
+
+    /**
+     * To be overridden in forms which have custom validation rules besides single field validation.
+     * Called after field validation, only if all the fields did validate.
+     * Should set $this->isValid and $this->errorMessage if there's anything wrong.
+     * Should work preferably with values from $this->fields rather than $request, which is passed in as a commodity
+     */
+    protected function validateSubmit(?array $request = null): void
+    {
     }
 
     public function getData(): array
@@ -121,10 +138,10 @@ abstract class Form
         }
     }
 
-    public function setError(string $errorMessage)
+    public function setError(?string $errorMessage)
     {
         $this->errorMessage = $errorMessage;
-        $this->isValid = false;
+        $this->isValid = ($errorMessage !== null && $errorMessage !== '');
     }
 
     public function __get($name)
