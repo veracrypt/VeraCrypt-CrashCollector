@@ -2,30 +2,38 @@
     {# @todo allow better styling of the error message: align it below the input field #}
     {% if field.inputType == 'anticsrf' %}
         <input type="hidden" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.getAntiCSRFToken() }}" {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}/>
+
     {% elseif field.inputType == 'datetime-local' %}
         <label for="{{ field.inputName }}" class="{{ css_classes.label|default('') }}">{{ field.label }}</label>
         <div class="{{ css_classes.div|default('') }}"><input type="datetime-local" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}></div>
         {% if field.errorMessage != '' %}<p class="text-danger">{{ field.errorMessage }}</p>{% endif %}
+
     {% elseif field.inputType == 'email' %}
         <label for="{{ field.inputName }}" class="{{ css_classes.label|default('') }}">{{ field.label }}</label>
-        <div class="{{ css_classes.div|default('') }}"><input type="email" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"{% if field.getMaxLength() %} maxlength="{{ field.getMaxLength() }}"{% endif %}{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}></div>
+        <div class="{{ css_classes.div|default('') }}"><input type="email" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"{% if field.getMaxLength() %} maxlength="{{ field.getMaxLength() }}"{% endif %}{% if field.getMinLength() %} minlength="{{ field.getMinLength() }}"{% endif %}{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}></div>
         {% if field.errorMessage != '' %}<p class="text-danger">{{ field.errorMessage }}</p>{% endif %}
+
     {% elseif field.inputType == 'hidden' %}
         <input type="hidden" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}/>
+
     {% elseif field.inputType == 'submit-button' %}
         <div class="{{ css_classes.div|default('') }}"><button type="submit" name="{{ field.inputName }}" value="{{ field.value }}" class="btn btn-primary form-control" {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}>{{ field.label }}</button></div>
+
     {% elseif field.inputType == 'password' %}
         <label for="{{ field.inputName }}" class="{{ css_classes.label|default('') }}">{{ field.label }}</label>
-        <div class="{{ css_classes.div|default('') }}"><input type="password" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"{% if field.getMaxLength() %} maxlength="{{ field.getMaxLength() }}"{% endif %}{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}></div>
+        <div class="{{ css_classes.div|default('') }}"><input type="password" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"{% if field.getMaxLength() %} maxlength="{{ field.getMaxLength() }}"{% endif %}{% if field.getMinLength() %} minlength="{{ field.getMinLength() }}"{% endif %}{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}></div>
         {% if field.errorMessage != '' %}<p class="text-danger">{{ field.errorMessage }}</p>{% endif %}
+
     {% elseif field.inputType == 'text' %}
         <label for="{{ field.inputName }}" class="{{ css_classes.label|default('') }}">{{ field.label }}</label>
-        <div class="{{ css_classes.div|default('') }}"><input type="text" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"{% if field.getMaxLength() %} maxlength="{{ field.getMaxLength() }}"{% endif %}{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}></div>
+        <div class="{{ css_classes.div|default('') }}"><input type="text" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"{% if field.getMaxLength() %} maxlength="{{ field.getMaxLength() }}"{% endif %}{% if field.getMinLength() %} minlength="{{ field.getMinLength() }}"{% endif %}{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}></div>
         {% if field.errorMessage != '' %}<p class="text-danger">{{ field.errorMessage }}</p>{% endif %}
+
     {% elseif field.inputType == 'textarea' %}
         <label for="{{ field.inputName }}" class="{{ css_classes.label|default('') }}">{{ field.label }}</label>
-        <div class="{{ css_classes.div|default('') }}"><textarea id="{{ field.inputName }}" name="{{ field.inputName }}" class="{{ css_classes.input|default('') }}"{% if field.getMaxLength() %} maxlength="{{ field.getMaxLength() }}"{% endif %}{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}>{{ field.value }}</textarea></div>
+        <div class="{{ css_classes.div|default('') }}"><textarea id="{{ field.inputName }}" name="{{ field.inputName }}" class="{{ css_classes.input|default('') }}"{% if field.getMaxLength() %} maxlength="{{ field.getMaxLength() }}"{% endif %}{% if field.getMinLength() %} minlength="{{ field.getMinLength() }}"{% endif %}{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}>{{ field.value }}</textarea></div>
         {% if field.errorMessage != '' %}<p class="text-danger">{{ field.errorMessage }}</p>{% endif %}
+
     {% else %}
         {# @todo we should really throw a \DomainException... #}
         <div class="{{ css_classes.div|default('') }}">ERROR! unsupported form field type: '{{ field.inputType }}'</div>

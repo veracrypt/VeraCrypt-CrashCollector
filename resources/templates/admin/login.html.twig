@@ -14,9 +14,6 @@
         {{ forms.input(form.getField('password'), {'label': 'col-sm-2 col-form-label', 'div': 'col-sm-10', 'input': 'form-control'}) }}
     </div>
     {{ forms.input(form.getField('redirect'), {}) }}
-    {%  if not form.isValid() %}
-        <p class="text-danger">{{ form.errorMessage }}</p>
-    {% endif %}
     <div class="row">
         {{ forms.input(form.getSubmit(), {'input': 'btn btn-primary form-control'}) }}
     </div>

@@ -26,7 +26,7 @@ class AntiCSRF extends Basefield
     {
         $antiCSRF = new AntiCSRFTokenManager();
         try {
-            $antiCSRF->validateToken($value, $this->formActionUrl);
+            $antiCSRF->validateToken((string)$value, $this->formActionUrl);
         } catch (AntiCSRFException $e) {
             $this->errorMessage = 'The ANTI-CSRF token has been tampered or is missing';
             $logger = Logger::getInstance('audit');

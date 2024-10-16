@@ -17,23 +17,17 @@ if ($form->isSubmitted()) {
     $form->handleRequest();
     if ($form->isValid()) {
         $data = $form->getData();
+        // the redirect url is validated by the form to match a local file within the web root
         $redirectUrl = $data['redirect'];
-        /// @todo we should move this validation to the LoginForm
-        if (!$router->match($redirectUrl)) {
-            $form->setError('Tsk tsk tsk');
-            $logger = Logger::getInstance('audit');
-            $logger->warning("Hacking attempt: login fom submitted with invalid redirect url '$redirectUrl'");
-        } else {
-            unset($data['redirect']);
-            $authenticator = new UsernamePasswordAuthenticator();
-            try {
-                $authenticator->authenticate(...$data);
-                header('Location: ' . $redirectUrl, true, 303);
-                exit();
-            } catch (AuthenticationException $e) {
-                /// @todo should we reduce the level of info shown? Eg. not tell apart unknown user from bad password
-                $form->setError($e->getMessage());
-            }
+        unset($data['redirect']);
+        $authenticator = new UsernamePasswordAuthenticator();
+        try {
+            $authenticator->authenticate(...$data);
+            header('Location: ' . $redirectUrl, true, 303);
+            exit();
+        } catch (AuthenticationException $e) {
+            /// @todo should we reduce the level of info shown? Eg. not tell apart unknown user from bad password
+            $form->setError($e->getMessage());
         }
     }
 } else {
