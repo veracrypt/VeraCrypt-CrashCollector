@@ -108,8 +108,8 @@ class Firewall
         $session = Session::getInstance();
         $session->destroySession();
 
-        /// @todo clean up csrf tokens and remember-me tokens if not stored in the Session
-        /// @todo send Clear-Site-Data header? (using an event system?)
+        /// @todo clean up remember-me tokens if not stored in the Session
+        /// @todo send Clear-Site-Data header? Investigate more the pros and cons...
     }
 
     /**
