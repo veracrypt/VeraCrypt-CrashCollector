@@ -11,6 +11,8 @@ $router = new Router();
 $form = new CrashReportSubmitForm($router->generate(__FILE__));
 
 // allow to pre-fill form fields using GET request, but only act on POST
+/// @todo should we change this behaviour to pre-fill the form on POST requests which just miss the Submit button?
+///       It might make sense, as the call-stack field is not a good candidate for being serialized in the URL...
 if ($form->isSubmitted()) {
     $form->handleRequest();
     if ($form->isValid()) {
