@@ -24,6 +24,9 @@
         <div class="{{ css_classes.div|default('') }}"><input type="password" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"{% if field.getMaxLength() %} maxlength="{{ field.getMaxLength() }}"{% endif %}{% if field.getMinLength() %} minlength="{{ field.getMinLength() }}"{% endif %}{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}></div>
         {% if field.errorMessage != '' %}<p class="text-danger">{{ field.errorMessage }}</p>{% endif %}
 
+    {% elseif field.inputType == 'ratelimiter' %}
+        {# show nothing #}
+
     {% elseif field.inputType == 'text' %}
         <label for="{{ field.inputName }}" class="{{ css_classes.label|default('') }}">{{ field.label }}</label>
         <div class="{{ css_classes.div|default('') }}"><input type="text" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"{% if field.getMaxLength() %} maxlength="{{ field.getMaxLength() }}"{% endif %}{% if field.getMinLength() %} minlength="{{ field.getMinLength() }}"{% endif %}{% if field.isRequired() %} required{% endif %} {% for attr, value in input_attributes %}"{{ attr }}"="{{ value }}" {% endfor %}></div>

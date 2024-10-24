@@ -2,6 +2,6 @@
 
 namespace Veracrypt\CrashCollector\Exception;
 
-abstract class AntiCSRFException extends \RuntimeException
+abstract class AntiCSRFException extends AuthorizationException
 {
 }

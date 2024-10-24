@@ -4,7 +4,7 @@ namespace Veracrypt\CrashCollector\Security;
 
 use Veracrypt\CrashCollector\Entity\User;
 use Veracrypt\CrashCollector\Entity\UserRole;
-use Veracrypt\CrashCollector\Exception\AuthorizationException;
+use Veracrypt\CrashCollector\Exception\UserNotAuthorizedException;
 use Veracrypt\CrashCollector\Exception\UserNotFoundException;
 use Veracrypt\CrashCollector\Form\LoginForm;
 use Veracrypt\CrashCollector\Logger;
@@ -114,13 +114,13 @@ class Firewall
 
     /**
      * @param UserRole|UserRole[] $roles
-     * @throws AuthorizationException
+     * @throws UserNotAuthorizedException
      */
     public function require(UserRole|array $roles): void
     {
         foreach(array($roles) as $role) {
             if (!in_array($role, $this->getUser()->getRoles())) {
-                throw new AuthorizationException("Current user does not have required role " . $role->value);
+                throw new UserNotAuthorizedException("Current user does not have required role " . $role->value);
             }
         }
     }

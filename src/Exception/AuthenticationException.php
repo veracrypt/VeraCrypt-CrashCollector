@@ -2,6 +2,6 @@
 
 namespace Veracrypt\CrashCollector\Exception;
 
-class AuthenticationException extends FirewallException
+abstract class AuthenticationException extends \RuntimeException
 {
 }

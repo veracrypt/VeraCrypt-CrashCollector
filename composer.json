@@ -5,6 +5,7 @@
     "require": {
         "php": "^8.1",
         "ext-pdo": "*",
+        "ext-redis": "*",
         "ext-sqlite3": "*",
         "psr/log": "^3.0.2",
         "symfony/console": "^6.4.12",

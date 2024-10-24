@@ -3,6 +3,8 @@
 namespace Veracrypt\CrashCollector\Form;
 
 use Veracrypt\CrashCollector\Form\FieldConstraint as FC;
+use Veracrypt\CrashCollector\RateLimiter\ConstraintInterface;
+use Veracrypt\CrashCollector\RateLimiter\RateLimiter;
 
 /**
  * @property-read ?string $value
@@ -40,8 +42,15 @@ abstract class Field
                 case FC::Required:
                     break;
                 case FC::MaxLength:
+                case FC::MinLength:
                     if ($targetValue < 0) {
-                        throw new \DomainException("Unsupported field maxlength: $targetValue");
+                        throw new \DomainException("Unsupported field max(/min) length: $targetValue");
+                    }
+                    break;
+                case FC::RateLimit:
+                    if (!is_array($targetValue)) {
+                        // the type and number of elements in $targetValue is checked by the RateLimiter itself, later on
+                        throw new \DomainException("Unsupported configuration for rate-limit field: not an array");
                     }
                     break;
                 default:
@@ -105,6 +114,16 @@ abstract class Field
                 case FC::MinLength:
                     if ($targetValue > 0 && strlen($value) < $targetValue) {
                         $this->errorMessage = "Value should not be shorter than {$targetValue} characters";
+                        return false;
+                    }
+                    break;
+                case FC::RateLimit:
+                    $limiter = new RateLimiter($targetValue);
+                    try {
+                        $limiter->validateRequest((string)$value);
+                    } catch (\RuntimeException $e) {
+                        /// @todo should we tell apart rate limit hit vs. bad config or connection issues?
+                        $this->errorMessage = $e->getMessage();
                         return false;
                     }
                     break;
