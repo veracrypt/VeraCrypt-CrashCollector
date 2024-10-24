@@ -2,10 +2,14 @@
 
 namespace Veracrypt\CrashCollector\RateLimiter;
 
+use Veracrypt\CrashCollector\Exception\AuthorizationException;
+use Veracrypt\CrashCollector\Exception\RateLimitExceedException;
+
 class RateLimiter
 {
     /**
      * @param ConstraintInterface[] $constraints
+     * @throws \DomainException
      */
     public function __construct(
         protected array $constraints = []
@@ -17,7 +21,9 @@ class RateLimiter
     }
 
     /**
-     * @throws \RuntimeException
+     * @throws RateLimitExceedException in case of rate limit exceeded
+     * @throws AuthorizationException for any other auth-related issue
+     * @throws \RuntimeException for anything else
      */
     public function validateRequest(?string $extraIdentifier = null): void
     {

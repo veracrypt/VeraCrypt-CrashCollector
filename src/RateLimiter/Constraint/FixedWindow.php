@@ -58,7 +58,7 @@ class FixedWindow implements ConstraintInterface
     protected function getTokenName(?string $extraIdentifier = null): string
     {
         $clientIP = $this->getClientIP();
-        $token = $this->prefix . '|' . $this->identifier . '|' . $this->intervalLength . '|' . $this->maxHitsPerInterval . '|' . $clientIP;
+        $token = $this->prefix . '|' . str_replace('|', '||', $this->identifier) . '|' . $this->intervalLength . '|' . $this->maxHitsPerInterval . '|' . $clientIP;
         if ($extraIdentifier !== null) {
             // Avoid extra-long strings - the worst case scenario for hash key collisions in this case is preventing
             // someone else from submitting a form with same value, iff they share the same IP...

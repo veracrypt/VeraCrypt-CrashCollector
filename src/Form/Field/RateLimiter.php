@@ -2,7 +2,9 @@
 
 namespace Veracrypt\CrashCollector\Form\Field;
 
+use Veracrypt\CrashCollector\Exception\RateLimitExceedException;
 use Veracrypt\CrashCollector\Form\Field as BaseField;
+use Veracrypt\CrashCollector\Logger;
 use Veracrypt\CrashCollector\RateLimiter\ConstraintInterface;
 use Veracrypt\CrashCollector\RateLimiter\RateLimiter as Limiter;
 
@@ -32,9 +34,12 @@ class RateLimiter extends BaseField
     {
         try {
             $this->limiter->validateRequest();
-        } catch (\RuntimeException $e) {
-            /// @todo should we tell apart rate limit hit vs. bad config or connection issues?
-            $this->errorMessage = $e->getMessage();
+        } catch (RateLimitExceedException $e) {
+            $this->errorMessage = "You have submitted the form too many times. Please wait for a while before re-submitting";
+
+            /// @todo improve this - add some info on the specific form (and the client IP?)
+            $logger = Logger::getInstance('audit');
+            $logger->info("Form was denied submission - rate limit achieved for field: " . $e->getMessage());
         }
         return null;
     }

@@ -18,7 +18,7 @@ class Redirect extends Hidden
             $this->errorMessage = 'Tsk tsk tsk. Pen testing redirects?';
 
             $logger = Logger::getInstance('audit');
-            $logger->info("Hacking attempt? fom submitted with invalid redirect url '$value'");
+            $logger->info("Hacking attempt? form submitted with invalid redirect url '$value'");
         }
         // We reset the redirect to the previous (current) value - as otherwise the displayed form will keep showing
         // a non-acceptable value. Also, pen-testing tools might believe that they achieve some injection of sorts...
