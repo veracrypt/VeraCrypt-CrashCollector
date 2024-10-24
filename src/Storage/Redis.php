@@ -19,7 +19,7 @@ trait Redis
     {
         if (self::$rh === null) {
             self::$rh = new RedisServer();
-            self::$rh->connect($_ENV['REDIS_HOST'], $_ENV['REDIS_PORT']);
+            self::$rh->connect($_ENV['REDIS_HOST'], (int)$_ENV['REDIS_PORT']);
             if (@$_ENV['REDIS_PASSWORD'] != '') {
                 self::$rh->auth($_ENV['REDIS_PASSWORD']);
             }
