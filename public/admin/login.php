@@ -24,6 +24,7 @@ if ($form->isSubmitted()) {
         try {
             $authenticator->authenticate(...$data);
             header('Location: ' . $redirectUrl, true, 303);
+            $form->onSuccessfulLogin();
             exit();
         } catch (AuthenticationException $e) {
             /// @todo should we reduce the level of info shown? Eg. not tell apart unknown user from bad password

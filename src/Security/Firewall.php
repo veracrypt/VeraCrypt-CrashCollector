@@ -3,7 +3,6 @@
 namespace Veracrypt\CrashCollector\Security;
 
 use Veracrypt\CrashCollector\Entity\User;
-use Veracrypt\CrashCollector\Entity\UserRole;
 use Veracrypt\CrashCollector\Exception\UserNotAuthorizedException;
 use Veracrypt\CrashCollector\Exception\UserNotFoundException;
 use Veracrypt\CrashCollector\Form\LoginForm;

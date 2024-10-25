@@ -5,6 +5,7 @@ namespace Veracrypt\CrashCollector\Entity;
 use DateTimeImmutable;
 use DateTimeInterface;
 use Veracrypt\CrashCollector\Security\UserInterface;
+use Veracrypt\CrashCollector\Security\UserRole;
 
 /**
  * @property-read int $dateJoined

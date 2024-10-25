@@ -2,8 +2,6 @@
 
 namespace Veracrypt\CrashCollector\Security;
 
-use Veracrypt\CrashCollector\Entity\UserRole;
-
 class AnonymousUser implements UserInterface
 {
     public function getRoles(): array

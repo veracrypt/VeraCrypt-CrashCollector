@@ -6,7 +6,7 @@ use Veracrypt\CrashCollector\Entity\User;
 use Veracrypt\CrashCollector\Logger;
 use Veracrypt\CrashCollector\Repository\FieldConstraint as FC;
 
-class UserRepository extends Repository
+class UserRepository extends DatabaseRepository
 {
     protected string $tableName = 'auth_user';
     protected Logger $logger;

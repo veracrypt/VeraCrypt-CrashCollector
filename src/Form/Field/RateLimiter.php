@@ -5,7 +5,7 @@ namespace Veracrypt\CrashCollector\Form\Field;
 use Veracrypt\CrashCollector\Exception\RateLimitExceedException;
 use Veracrypt\CrashCollector\Form\Field as BaseField;
 use Veracrypt\CrashCollector\Logger;
-use Veracrypt\CrashCollector\RateLimiter\ConstraintInterface;
+use Veracrypt\CrashCollector\RateLimiter\RateLimiterInterface;
 use Veracrypt\CrashCollector\RateLimiter\RateLimiter as Limiter;
 
 /**
@@ -19,7 +19,7 @@ class RateLimiter extends BaseField
     protected Limiter $limiter;
 
     /**
-     * @var ConstraintInterface[] $constraints
+     * @var RateLimiterInterface[] $constraints
      */
     public function __construct(
         array $constraints

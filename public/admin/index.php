@@ -2,12 +2,12 @@
 
 require_once(__DIR__ . '/../../autoload.php');
 
-use Veracrypt\CrashCollector\Entity\UserRole;
 use Veracrypt\CrashCollector\Exception\AuthorizationException;
 use Veracrypt\CrashCollector\Form\CrashReportSearchForm;
 use Veracrypt\CrashCollector\Repository\CrashReportRepository;
 use Veracrypt\CrashCollector\Router;
 use Veracrypt\CrashCollector\Security\Firewall;
+use Veracrypt\CrashCollector\Security\UserRole;
 use Veracrypt\CrashCollector\Templating;
 
 /// @todo get from .env?

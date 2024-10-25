@@ -5,13 +5,14 @@ namespace Veracrypt\CrashCollector\Form;
 use Veracrypt\CrashCollector\Exception\RateLimitExceedException;
 use Veracrypt\CrashCollector\Form\FieldConstraint as FC;
 use Veracrypt\CrashCollector\Logger;
-use Veracrypt\CrashCollector\RateLimiter\ConstraintInterface;
-use Veracrypt\CrashCollector\RateLimiter\RateLimiter;
+use Veracrypt\CrashCollector\RateLimiter\RateLimiterInterface;
 
 /**
  * @property-read ?string $value
  * @property-read ?string $errorMessage
  * @property-read bool isValid
+ *
+ * @todo introduce a FieldInterface
  */
 abstract class Field
 {
@@ -50,9 +51,9 @@ abstract class Field
                     }
                     break;
                 case FC::RateLimit:
-                    if (!is_array($targetValue)) {
+                    if (!($targetValue instanceof RateLimiterInterface)) {
                         // the type and number of elements in $targetValue is checked by the RateLimiter itself, later on
-                        throw new \DomainException("Unsupported configuration for rate-limit field: not an array");
+                        throw new \DomainException("Unsupported configuration for rate-limit field: not a rate limiter object");
                     }
                     break;
                 default:
@@ -120,9 +121,8 @@ abstract class Field
                     }
                     break;
                 case FC::RateLimit:
-                    $limiter = new RateLimiter($targetValue);
                     try {
-                        $limiter->validateRequest((string)$value);
+                        $targetValue->validateRequest((string)$value);
                     } catch (RateLimitExceedException $e) {
                         $this->errorMessage = "You have submitted the form too many times. Please wait for a while before re-submitting";
 

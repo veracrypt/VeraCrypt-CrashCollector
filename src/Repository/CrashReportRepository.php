@@ -6,7 +6,7 @@ use DateTimeInterface;
 use Veracrypt\CrashCollector\Entity\CrashReport;
 use Veracrypt\CrashCollector\Repository\FieldConstraint as FC;
 
-class CrashReportRepository extends Repository
+class CrashReportRepository extends DatabaseRepository
 {
     protected string $tableName = 'crash_report';
 

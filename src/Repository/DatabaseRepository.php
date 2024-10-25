@@ -4,7 +4,7 @@ namespace Veracrypt\CrashCollector\Repository;
 
 use Veracrypt\CrashCollector\Storage\DatabaseTable;
 
-abstract class Repository
+abstract class DatabaseRepository
 {
     use DatabaseTable;
 

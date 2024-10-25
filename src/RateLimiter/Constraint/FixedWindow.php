@@ -4,16 +4,14 @@ namespace Veracrypt\CrashCollector\RateLimiter\Constraint;
 
 use Veracrypt\CrashCollector\Exception\AuthorizationException;
 use Veracrypt\CrashCollector\Exception\RateLimitExceedException;
-use Veracrypt\CrashCollector\RateLimiter\ConstraintInterface;
+use Veracrypt\CrashCollector\RateLimiter\RateLimiterInterface;
 use Veracrypt\CrashCollector\Security\ClientIPAware;
-use Veracrypt\CrashCollector\Storage\Redis;
 
-class FixedWindow implements ConstraintInterface
+class FixedWindow extends  RedisConstraint implements RateLimiterInterface
 {
-    use Redis;
     use ClientIPAware;
 
-    protected string $prefix = 'RL_FW_';
+    protected $postfix = 'FW';
 
     /**
      * @param int $intervalLength in seconds
@@ -38,7 +36,7 @@ class FixedWindow implements ConstraintInterface
     {
         $this->connect();
 
-        $key = $this->getTokenName($extraIdentifier);
+        $key = $this->getKey($extraIdentifier);
         if (!self::$rh->exists($key)) {
             if (!self::$rh->set($key, 1) || !self::$rh->expire($key, $this->intervalLength)) {
                 throw new \RuntimeException('Error saving RateLimiter data in Redis');
@@ -54,16 +52,22 @@ class FixedWindow implements ConstraintInterface
         }
     }
 
-    /// @todo allow using other means than the client IP to group together requests, esp. when $extraIdentifier is not null
-    protected function getTokenName(?string $extraIdentifier = null): string
+    /**
+     * @throws \RedisException
+     */
+    public function reset(?string $extraIdentifier = null): void
     {
-        $clientIP = $this->getClientIP();
-        $token = $this->prefix . '|' . str_replace('|', '||', $this->identifier) . '|' . $this->intervalLength . '|' . $this->maxHitsPerInterval . '|' . $clientIP;
-        if ($extraIdentifier !== null) {
-            // Avoid extra-long strings - the worst case scenario for hash key collisions in this case is preventing
-            // someone else from submitting a form with same value, iff they share the same IP...
-            $token .= '|' . md5($extraIdentifier);
-        }
-        return $token;
+        self::$rh->unlink($this->getKey());
+    }
+
+    /// @todo allow using other means than the client IP to group together requests, esp. when $extraIdentifier is not null
+    protected function getKey(?string $extraIdentifier = null): string
+    {
+        // the order of fields is chosen to allow wildcard purging of all constraints matching  a given identifier,
+        // regardless of constraint type / config
+        return $this->prefix . '|' . str_replace('|', '||', $this->identifier) . '|' .
+            ($extraIdentifier !== null ? md5($extraIdentifier) : '') . '|' .
+            $this->getClientIP() . '|' .
+            $this->intervalLength . '|' . $this->maxHitsPerInterval  . '|' . $this->postfix;
     }
 }

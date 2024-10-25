@@ -1,6 +1,6 @@
 <?php
 
-namespace Veracrypt\CrashCollector\Entity;
+namespace Veracrypt\CrashCollector\Security;
 
 enum UserRole: string
 {
