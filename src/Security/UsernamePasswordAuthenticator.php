@@ -2,6 +2,7 @@
 
 namespace Veracrypt\CrashCollector\Security;
 
+use Psr\Log\LoggerInterface;
 use Veracrypt\CrashCollector\Exception\AccountExpiredException;
 use Veracrypt\CrashCollector\Exception\AuthenticationException;
 use Veracrypt\CrashCollector\Exception\BadCredentialsException;
@@ -11,11 +12,11 @@ use Veracrypt\CrashCollector\Logger;
 class UsernamePasswordAuthenticator
 {
     /** @var UserProvider $userProvider */
-    protected $userProvider;
+    protected UserProvider $userProvider;
     /** @var PasswordHasher $passwordHasher */
-    protected $passwordHasher;
+    protected PasswordHasher $passwordHasher;
     /** @var Logger $logger */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     public function __construct()
     {

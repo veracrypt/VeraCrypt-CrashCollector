@@ -57,6 +57,11 @@ class User implements UserInterface
         return $this->username;
     }
 
+    public function isAuthenticated(): bool
+    {
+        return true;
+    }
+
     public function isActive(): bool
     {
         return $this->isActive;

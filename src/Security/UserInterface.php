@@ -14,5 +14,13 @@ interface UserInterface
      */
     public function getUserIdentifier(): string;
 
+    /**
+     * Disabled users are not allowed to log in
+     */
     public function isActive(): bool;
+
+    /**
+     * Returns false for Anonymous users
+     */
+    public function isAuthenticated(): bool;
 }

@@ -14,6 +14,11 @@ class AnonymousUser implements UserInterface
         return 'anonymous';
     }
 
+    public function isAuthenticated(): bool
+    {
+        return false;
+    }
+
     public function isActive(): bool
     {
         return false;

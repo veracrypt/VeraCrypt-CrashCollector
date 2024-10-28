@@ -5,7 +5,6 @@ require_once(__DIR__ . '/../../autoload.php');
 use Veracrypt\CrashCollector\Exception\AuthenticationException;
 use Veracrypt\CrashCollector\Security\Firewall;
 use Veracrypt\CrashCollector\Form\LoginForm;
-use Veracrypt\CrashCollector\Logger;
 use Veracrypt\CrashCollector\Router;
 use Veracrypt\CrashCollector\Security\UsernamePasswordAuthenticator;
 use Veracrypt\CrashCollector\Templating;

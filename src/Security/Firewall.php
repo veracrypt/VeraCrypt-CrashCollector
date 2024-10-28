@@ -67,8 +67,8 @@ class Firewall
      */
     public function loginUser(UserInterface $user): void
     {
-        if ($user instanceof AnonymousUser) {
-            throw new \DomainException('Anonymous user can not be used for logging in');
+        if (!$user->isAuthenticated()) {
+            throw new \DomainException('Non-authenticated user ' . $user->getUserIdentifier() . ' can not be used for logging in');
         }
 
         if ($user === $this->user) {
