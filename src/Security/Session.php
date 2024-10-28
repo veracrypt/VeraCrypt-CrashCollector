@@ -42,7 +42,6 @@ class Session
 
     public function regenerate(): void
     {
-        /// @todo check: if there is already a session, should we remove existing csrf tokens from the storage?
         /// @todo Should we delete the previous session data, passing in $true, or keep the old session around? See example 2 at
         ///       https://www.php.net/manual/en/function.session-regenerate-id.php#refsect1-function.session-regenerate-id-examples
         ///       for the recommended way to generate new session ids while avoiding issues with unstable networks and

@@ -81,6 +81,9 @@ class Firewall
         $previousUserIdentifier = $session->get($this->storageKey);
         if ($user->getUserIdentifier() !== $previousUserIdentifier) {
             $session->regenerate();
+
+            $antiCSRF = new AntiCSRF();
+            $antiCSRF->purgeTokens();
         }
         $session->set($this->storageKey, $user->getUserIdentifier());
         /// @todo here we could add $session->commit() - or use autocommitting sessions

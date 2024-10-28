@@ -110,4 +110,11 @@ class AntiCSRF
             throw new TokenMatchesWrongFormException('Anti-CSRF token used on the wrong form');
         }
     }
+
+    public function purgeTokens(): void
+    {
+        // remove all csrf tokens from the session
+        $session = Session::getInstance();
+        $session->set($this->storageKey, []);
+    }
 }
