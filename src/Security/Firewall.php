@@ -40,7 +40,7 @@ class Firewall
         // we avoid calling session_start (triggered by `get`) unless there is a session cookie present, in order to make it
         // possible to have the fw run on pages which work both for non and authenticated users without creating sessions
         // all the time
-        if (!$session->isStarted() && !$session->cookieIsPresent()) {
+        if (!$session->cookieIsPresent() && !$session->isStarted()) {
             return;
         }
         $username = $session->get($this->storageKey);
