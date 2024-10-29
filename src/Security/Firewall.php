@@ -26,7 +26,10 @@ class Firewall
         }
     }
 
-    protected function supportsRequest()
+    /**
+     * @todo implement some logic when/if we'll add support for non-session auth such as eg. basic auth, etc...
+     */
+    protected function supportsRequest(): bool
     {
         return true;
     }
@@ -34,6 +37,12 @@ class Firewall
     protected function authenticate(): void
     {
         $session = Session::getInstance();
+        // we avoid calling session_start (triggered by `get`) unless there is a session cookie present, in order to make it
+        // possible to have the fw run on pages which work both for non and authenticated users without creating sessions
+        // all the time
+        if (!$session->isStarted() && !$session->cookieIsPresent()) {
+            return;
+        }
         $username = $session->get($this->storageKey);
         if ($username !== null) {
             // we always refresh the user details from the repo, to check if his/her roles or active status have changed
@@ -120,8 +129,12 @@ class Firewall
      */
     public function require(UserRole|array $roles): void
     {
-        foreach(array($roles) as $role) {
-            if (!in_array($role, $this->getUser()->getRoles())) {
+        $userRoles = $this->getUser()->getRoles();
+        if (!is_array($roles)) {
+            $roles = array($roles);
+        }
+        foreach($roles as $role) {
+            if (!in_array($role, $userRoles)) {
                 throw new UserNotAuthorizedException("Current user does not have required role " . $role->value);
             }
         }

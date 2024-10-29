@@ -40,6 +40,16 @@ class Session
         ];
     }
 
+    public function isStarted(): bool
+    {
+        return $this->sessionStarted;
+    }
+
+    public function cookieIsPresent(): bool
+    {
+        return array_key_exists(session_name(), $_COOKIE);
+    }
+
     public function regenerate(): void
     {
         /// @todo Should we delete the previous session data, passing in $true, or keep the old session around? See example 2 at
@@ -53,7 +63,7 @@ class Session
     {
         if (\PHP_SESSION_ACTIVE === session_status()) {
             $_SESSION = [];
-            /// @todo check php source code: does it make sense to call session_write_close() here, or does session_destroy do that already?
+            // no need to call session_write_close() here, as or does session_destroy triggers that already
             session_destroy();
         }
 

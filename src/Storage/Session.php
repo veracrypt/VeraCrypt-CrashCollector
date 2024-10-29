@@ -26,6 +26,7 @@ trait Session
     }
 
     /**
+     * NB: this will cause the session to start if it was not started already!
      * @todo we could cache the whole of $_SESSION in memory so that we can avoid further calls to session_start on later
      *       calls to get (and either add a $forceRefresh argument, or a separate `refresh` method). This is esp.
      *       useful when in autocommit mode
