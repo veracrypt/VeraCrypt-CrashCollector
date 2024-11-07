@@ -53,13 +53,21 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 2. check the configuration in `.env`, and, if required, change any value by saving it in a file named `.env.local`
 3. make sure that the `var/data` directory is writeable (this is where the app will create its sqlite db by default),
    as well as `var/logs` and `var/cache/twig`
-4. create an administrator user: run the cli command `./bin/console user:create --is-superuser <username> <email> <firstname> <lastname>`
-5. set up the webserver:
+4. configure php:
+
+    - for a production installation, it is recommended to follow the owasp guidelines available at
+       https://cheatsheetseries.owasp.org/cheatsheets/PHP_Configuration_Cheat_Sheet.html
+    - it is recommended to use Redis for php session storage
+5. create an administrator user: run the cli command `php ./bin/console user:create --is-superuser <username> <email> <firstname> <lastname>`
+6. set up a cronjob (daily or weekly is fine) running the cli command `php ./bin/console forgotpasswordtoken:prune`
+7. set up the webserver:
 
     - configure the vhost root directory to be the `public` directory. No http access to any other folder please
     - make sure .php scripts are executed via the php interpreter
     - no rewrite rules are necessary
-6. Navigate to `https://your-host/upload/` to upload crash reports; to `https://your-host/admin/` for browsing them
+8. navigate to `https://your-host/upload/` to upload crash reports; to `https://your-host/admin/` for browsing them
+9. optionally, run the SQLite pragma `journal_mode=WAL` to have optimized performance and concurrency
+10. optionally, set up cronjobs to run the SQLite pragmas `optimize` and `integrity_check`
 
 ## How it works
 
