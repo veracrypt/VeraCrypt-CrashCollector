@@ -158,7 +158,7 @@ abstract class Form
     public function setError(?string $errorMessage)
     {
         $this->errorMessage = $errorMessage;
-        $this->isValid = ($errorMessage !== null && $errorMessage !== '');
+        $this->isValid = ($errorMessage === null || $errorMessage === '');
     }
 
     public function __get($name)

@@ -60,7 +60,6 @@ class SetNewPasswordForm extends PasswordUpdateBaseForm
         }
     }
 
-
     public function getUser(): null|User
     {
         return $this->userConstraint->getUser();
