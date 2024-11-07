@@ -29,7 +29,7 @@ if ($form->isSubmitted()) {
     if ($form->isValid()) {
         $passwordHasher = new PasswordHasher();
         $repository = new UserRepository();
-        $repository->updateUser($user->getUserIdentifier(), $passwordHasher->hash($form->getField('newPassword')->getData()));
+        $repository->updateUser($user->getUserIdentifier(), $passwordHasher->hash($form->getFieldData('newPassword')));
     }
 }
 

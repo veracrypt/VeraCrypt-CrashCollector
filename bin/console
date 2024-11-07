@@ -14,6 +14,7 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Veracrypt\CrashCollector\Repository\ForgotPasswordTokenRepository;
 use Veracrypt\CrashCollector\Repository\UserRepository;
 use Veracrypt\CrashCollector\Security\PasswordHasher;
 
@@ -141,6 +142,14 @@ $application->register('user:update')
             return Command::FAILURE;
         }
         $output->writeln("User updated");
+        return Command::SUCCESS;
+    });
+
+$application->register('forgotpasswordtoken:prune')
+    ->setCode(function (InputInterface $input, OutputInterface $output): int {
+        $repo = new ForgotPasswordTokenRepository();
+        $repo->prune();
+        $output->writeln("Expired forgotpassword tokens deleted");
         return Command::SUCCESS;
     });
 

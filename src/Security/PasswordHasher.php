@@ -93,4 +93,9 @@ class PasswordHasher
     {
         return password_needs_rehash($hashedPassword, $this->algorithm, $this->options);
     }
+
+    public function generateRandomString(int $length): string
+    {
+        return substr(bin2hex(random_bytes($length)), 0, $length);
+    }
 }

@@ -23,6 +23,7 @@ class UserRepository extends DatabaseRepository
             'id' => new Field(null, 'integer', [FC::NotNull => true, FC::PK => true, FC::Autoincrement => true]),
             'username' => new Field('username', 'varchar', [FC::Length => 180, FC::NotNull => true, FC::Unique => true]),
             'password' => new Field('passwordHash', 'varchar', [FC::Length => 255, FC::NotNull => true]),
+            // q: should we make emails unique?
             'email' => new Field('email', 'varchar', [FC::Length => 254, FC::NotNull => true]),
             'first_name' => new Field('firstName', 'varchar', [FC::Length => 150, FC::NotNull => true]),
             'last_name' => new Field('lastName', 'varchar', [FC::Length => 150, FC::NotNull => true]),
@@ -62,6 +63,20 @@ class UserRepository extends DatabaseRepository
         $stmt->execute();
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
         return $result ? new User(...$result) : null;
+    }
+
+    /**
+     * @return User[]
+     * @throws \PDOException
+     */
+    public function fetchUsersByEmail(string $email): array
+    {
+        $query = $this->buildFetchEntityQuery() . ' where email = :email';
+        $stmt = self::$dbh->prepare($query);
+        $stmt->bindValue(':email', $email);
+        $stmt->execute();
+        $results = $stmt->fetchAll(\PDO::FETCH_NUM);
+        return array_map(static fn($result) => new User(...$result), $results);
     }
 
     /**

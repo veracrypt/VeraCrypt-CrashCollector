@@ -30,6 +30,9 @@ class RateLimiter extends BaseField
         $this->limiter = new Limiter($constraints);
     }
 
+    /**
+     * @return null we can not enforce this via the function declaration, but this function only ever returns null
+     */
     protected function validateValue(mixed $value): null|string
     {
         try {

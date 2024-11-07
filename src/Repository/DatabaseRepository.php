@@ -4,6 +4,9 @@ namespace Veracrypt\CrashCollector\Repository;
 
 use Veracrypt\CrashCollector\Storage\DatabaseTable;
 
+/**
+ * @property Field[] $fields
+ */
 abstract class DatabaseRepository
 {
     use DatabaseTable;
@@ -48,13 +51,23 @@ abstract class DatabaseRepository
     }
 
     /**
+     * @return null|array when there are autoincrement cols, and no value is passed in for those, their value is returned
      * @throws \PDOException
      */
-    protected function storeEntity($value): void
+    protected function storeEntity($value): null|array
     {
         $query = 'insert into ' . $this->tableName . ' (';
         $vq = '';
+        $autoIncrementCols = [];
         foreach($this->fields as $colName => $field) {
+            foreach ($field->constraints as $constraintType => $constraintValue) {
+                if ($constraintType === FieldConstraint::Autoincrement && $constraintValue) {
+                    $entityField = $field->entityField;
+                    if ($entityField == '' || $value->$entityField === null) {
+                        $autoIncrementCols[] = $colName;
+                    }
+                }
+            }
             if ($field->entityField == '') {
                 continue;
             }
@@ -62,6 +75,10 @@ abstract class DatabaseRepository
             $vq .= ":$colName" . ', ';
         }
         $query = substr($query, 0, -2) . ') values (' . substr($vq, 0, -2) . ')';
+        if ($autoIncrementCols) {
+            // 'returning' is supported by sqlite >= ..., mariadb >= 10.5, postgresql
+            $query .= ' returning ' . implode(', ', $autoIncrementCols);
+        }
 
         $stmt = self::$dbh->prepare($query);
         /// @todo test: can `bindvalue` or `execute` fail without throwing?
@@ -78,5 +95,11 @@ abstract class DatabaseRepository
             $stmt->bindValue(":$colName", $val);
         }
         $stmt->execute();
+
+        if ($autoIncrementCols) {
+            return $stmt->fetch(\PDO::FETCH_ASSOC);
+        }
+
+        return null;
     }
 }

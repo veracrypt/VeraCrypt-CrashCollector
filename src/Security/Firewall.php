@@ -172,6 +172,7 @@ class Firewall
             'login' => $router->generate(__DIR__ . '/../../public/admin/login.php'),
             'logout' => $router->generate(__DIR__ . '/../../public/admin/logout.php'),
             'resetpassword' => $router->generate(__DIR__ . '/../../public/admin/resetpassword.php'),
+            'forgotpassword' => $router->generate(__DIR__ . '/../../public/admin/forgotpassword.php'),
         ];
     }
 }

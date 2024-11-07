@@ -2,11 +2,11 @@
 
 namespace Veracrypt\CrashCollector\Form;
 
+use Veracrypt\CrashCollector\Exception\FormFieldNotSubmittedException;
 use Veracrypt\CrashCollector\Form\Field\SubmitButton;
 
 /**
  * @property-read ?string $errorMessage
- * @property-read string $actionUrl
  */
 abstract class Form
 {
@@ -20,17 +20,17 @@ abstract class Form
     protected int $submitOn = self::ON_POST;
     protected bool $isValid = false;
     protected ?string $errorMessage = null;
-    protected string $actionUrl;
+    protected string $submitInputName = 's';
+    protected string|int $submitInputValue = 1;
 
-    public function __construct(string $actionUrl)
+    public function __construct(public readonly string $actionUrl)
     {
-        $this->actionUrl = $actionUrl;
     }
 
     /**
      * @throws \DomainException
      */
-    public function getField($fieldName): Field
+    public function getField(string $fieldName): Field
     {
         if (array_key_exists($fieldName, $this->fields)) {
             return $this->fields[$fieldName];
@@ -48,15 +48,15 @@ abstract class Form
 
     public function getSubmit(): Field
     {
-        return new SubmitButton($this->submitLabel, 's', [], 1);
+        return new SubmitButton($this->submitLabel, $this->submitInputName, [], $this->submitInputValue);
     }
 
     public function isSubmitted(?array $request = null): bool
     {
-        $submit = $this->getSubmit();
         if ($request === null) {
             $request = $this->getRequest();
         }
+        $submit = $this->getSubmit();
         return isset($request[$submit->inputName]) && $request[$submit->inputName] == $submit->value;
     }
 
@@ -96,6 +96,23 @@ abstract class Form
     {
     }
 
+    /**
+     * Make sure, before calling this, that the field was submitted. Typically, add a Required constraint to it.
+     * @throws \DomainException for invalid field names
+     * @throws FormFieldNotSubmittedException
+     */
+    public function getFieldData(string $fieldName): mixed
+    {
+        $field = $this->getField($fieldName);
+        if ($field->value === null) {
+            throw new FormFieldNotSubmittedException("Form field '$fieldName' was not submitted");
+        }
+        return $field->getData();
+    }
+
+    /**
+     * Returns values for all fields which were submitted.
+     */
     public function getData(): array
     {
         $data = [];
@@ -147,7 +164,7 @@ abstract class Form
     public function __get($name)
     {
         switch ($name) {
-            case 'actionUrl':
+            //case 'actionUrl':
             case 'errorMessage':
                 return $this->$name;
             default:
@@ -160,7 +177,7 @@ abstract class Form
     public function __isset($name)
     {
         return match ($name) {
-            'actionUrl' => true,
+            //'actionUrl' => true,
             'errorMessage' => isset($this->$name),
             default => false
         };

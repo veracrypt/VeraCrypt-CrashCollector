@@ -9,4 +9,5 @@ final class FieldConstraint
     const MaxLength = 2;
     const MinLength = 4;
     const RateLimit = 8;
+    const Custom = 16;
 }

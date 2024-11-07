@@ -42,7 +42,7 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 
 ## Requirements
 
-- PHP 8.1 and up, with the SQLite and PHPRedis extensions
+- PHP 8.1 and up, with the SQLite and PHPRedis extensions (using SQLite Library 3.35.4 or later)
 - a webserver configured to run PHP
 - a Redis server
 - Composer, to install the required dependencies

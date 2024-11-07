@@ -37,6 +37,6 @@ class LoginForm extends BaseForm
 
     public function onSuccessfulLogin()
     {
-        $this->rateLimiter->reset($this->getField('username')->getData());
+        $this->rateLimiter->reset($this->getFieldData('username'));
     }
 }

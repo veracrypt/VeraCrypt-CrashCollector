@@ -2,7 +2,9 @@
 
 namespace Veracrypt\CrashCollector\Form;
 
+use Veracrypt\CrashCollector\Exception\ConstraintException;
 use Veracrypt\CrashCollector\Exception\RateLimitExceedException;
+use Veracrypt\CrashCollector\Form\Field\Constraint\ConstraintInterface;
 use Veracrypt\CrashCollector\Form\FieldConstraint as FC;
 use Veracrypt\CrashCollector\Logger;
 use Veracrypt\CrashCollector\RateLimiter\RateLimiterInterface;
@@ -16,11 +18,6 @@ use Veracrypt\CrashCollector\RateLimiter\RateLimiterInterface;
  */
 abstract class Field
 {
-    //public readonly string $label;
-    //public readonly string $inputName;
-    //public readonly string $inputType;
-    //public readonly array $constraints;
-    //protected mixed $value = null;
     protected ?string $errorMessage = null;
 
     protected function __construct(
@@ -52,8 +49,12 @@ abstract class Field
                     break;
                 case FC::RateLimit:
                     if (!($targetValue instanceof RateLimiterInterface)) {
-                        // the type and number of elements in $targetValue is checked by the RateLimiter itself, later on
                         throw new \DomainException("Unsupported configuration for rate-limit field: not a rate limiter object");
+                    }
+                    break;
+                case FC::Custom:
+                    if (!($targetValue instanceof ConstraintInterface)) {
+                        throw new \DomainException("Unsupported configuration for field: not a custom constraint object");
                     }
                     break;
                 default:
@@ -81,8 +82,9 @@ abstract class Field
 
     /**
      * Used to validate and optionally convert to the desired representation the value submitted.
-     * By default, it converts non-null values to strings and trims whitespace. Null is received when the field is not
-     * present in the request received and it should generally be let through unchanged.
+     * By default, it converts non-null values to strings and trims whitespace.
+     * For overriders: null is received when the field is not present in the request received and it should generally be
+     * let through unchanged. Vice-versa, it is not recommended to return null when a non-null value is received.
      * NB: should set $this->errorMessage if a non-constraint is violated.
      */
     protected function validateValue(mixed $value): null|string
@@ -121,6 +123,7 @@ abstract class Field
                     }
                     break;
                 case FC::RateLimit:
+                    /// @todo can this be implemented as a Custom Constraint?
                     try {
                         $targetValue->validateRequest((string)$value);
                     } catch (RateLimitExceedException $e) {
@@ -130,6 +133,15 @@ abstract class Field
                         $logger = Logger::getInstance('audit');
                         $logger->info("Form was denied submission - rate limit achieved for field constraint: " . $e->getMessage());
 
+                        return false;
+                    }
+                    break;
+                case FC::Custom:
+                    /// @todo we should find a simple way to let the form users retrieve more info than just the exception message
+                    try {
+                        $targetValue->validateRequest((string)$value);
+                    } catch (ConstraintException $e) {
+                        $this->errorMessage = $e->getMessage();
                         return false;
                     }
                     break;
