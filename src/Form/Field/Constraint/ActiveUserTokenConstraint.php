@@ -46,10 +46,11 @@ class ActiveUserTokenConstraint implements ConstraintInterface
         if ($tokenId <= 0) {
             throw new TokenNotFoundException('Token not found');
         }
-        $this->token = $repo->fetch($tokenId);
-        if ($this->token === null) {
+        $token = $repo->fetch($tokenId);
+        if ($token === null) {
             throw new TokenNotFoundException('Token not found');
         }
+        $this->token = $token;
         $user = $this->token->getUser();
         if ($user === null) {
             throw new ConstraintUserNotFoundException('User matching token not found');
@@ -57,6 +58,7 @@ class ActiveUserTokenConstraint implements ConstraintInterface
         if (!$user->isActive()) {
             throw new ConstraintUserInactiveException('User matching token is not active');
         }
+
         $this->user = $user;
     }
 
