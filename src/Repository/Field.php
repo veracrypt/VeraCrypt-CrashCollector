@@ -2,11 +2,11 @@
 
 namespace Veracrypt\CrashCollector\Repository;
 
-use Veracrypt\CrashCollector\Storage\DatabaseColumn;
+use Veracrypt\CrashCollector\Storage\Database\Column;
 
 class Field
 {
-    use DatabaseColumn;
+    use Column;
 
     /**
      * @param mixed $constraints keys must be FieldConstraint constants

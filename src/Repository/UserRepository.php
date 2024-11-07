@@ -5,6 +5,7 @@ namespace Veracrypt\CrashCollector\Repository;
 use Veracrypt\CrashCollector\Entity\User;
 use Veracrypt\CrashCollector\Logger;
 use Veracrypt\CrashCollector\Repository\FieldConstraint as FC;
+use Veracrypt\CrashCollector\Storage\Database\Index;
 
 class UserRepository extends DatabaseRepository
 {
@@ -32,6 +33,11 @@ class UserRepository extends DatabaseRepository
             'is_active' => new Field('isActive', 'bool', [FC::NotNull => true, FC::Default => 'true']),
             //'is_staff' => new Field('isStaff', 'bool', [FC::NotNull => true, FC::Default => 'false']),
             'is_superuser' => new Field('isSuperuser', 'bool', [FC::NotNull => true, FC::Default => 'false']),
+        ];
+        $this->indexes = [
+            // afaik, an unique index on username will have been created automatically to enforce FC::Unique
+            //'idx_' . $this->tableName . '_un' => new Index(['username'], true),
+            'idx_' . $this->tableName . '_em' => new Index(['email']),
         ];
         $this->logger = Logger::getInstance('audit');
 

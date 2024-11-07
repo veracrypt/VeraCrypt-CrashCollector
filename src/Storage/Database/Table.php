@@ -1,10 +1,11 @@
 <?php
 
-namespace Veracrypt\CrashCollector\Storage;
+namespace Veracrypt\CrashCollector\Storage\Database;
 
 use Veracrypt\CrashCollector\Repository\FieldConstraint as FC;
+use Veracrypt\CrashCollector\Storage\Database;
 
-trait DatabaseTable
+trait Table
 {
     use Database;
 
@@ -14,8 +15,12 @@ trait DatabaseTable
      */
     protected string $tableName;
 
-    /** @var DatabaseColumn[] $fields Keys are table column names. NB: has to be set up before calling parent::__construct */
+    /** @var Column[] $fields Keys are table column names. NB: has to be set up before calling parent::__construct */
     protected array $fields = [];
+    /** @var Index[] $indexes */
+    protected array $indexes = [];
+    /** @var ForeignKey[] $indexes */
+    protected array $foreignKeys = [];
 
     /**
      * Flag to indicate that the underlying table has been created.
@@ -74,27 +79,27 @@ trait DatabaseTable
                 switch($cn) {
                     case FC::PK:
                         if ($cv) {
-                            $query .= 'primary key ';
+                            $query .= 'PRIMARY KEY ';
                         }
                         break;
                     case FC::Autoincrement:
                         if ($cv) {
-                            $query .=  'autoincrement ';
+                            $query .=  'AUTOINCREMENT ';
                         }
                         break;
                     case FC::NotNull:
                         if ($cv) {
-                            $query .=  'not null ';
+                            $query .=  'NOT NULL ';
                         }
                         break;
                     case FC::Unique:
                         if ($cv) {
-                            $query .=  'unique ';
+                            $query .=  'UNIQUE ';
                         }
                         break;
                     case FC::Default:
                         if ($cv !== null) {
-                            $query .=  'default ' . $cv . ' ';
+                            $query .=  'DEFAULT ' . $cv . ' ';
                         }
                         break;
                     default:
@@ -103,8 +108,22 @@ trait DatabaseTable
             }
             $query = substr($query, 0, -1) . ', ';
         }
+
+        /// @todo figure out how to enforce the fact that the referenced table has been already created
+        foreach ($this->foreignKeys as $fk) {
+            $query .= 'FOREIGN KEY (' . implode(', ', $fk->columns). ') REFERENCES ' . $fk->parentTable. '(' .
+                implode(', ', $fk->parentColumns). ') ON DELETE ' . $fk->onDelete->value . ' ON UPDATE ' .
+                $fk->onUpdate->value . ', ';
+        }
+
         $query = substr($query, 0, -2) . ')';
 
         self::$dbh->exec($query);
+
+        foreach ($this->indexes as $name => $idx) {
+            $query = 'CREATE ' . ($idx->unique ? 'UNIQUE ' : '') . 'INDEX ' . $name . ' ON ' . $this->tableName . '(' .
+                implode(', ', $idx->columns) . ')';
+            self::$dbh->exec($query);
+        }
     }
 }

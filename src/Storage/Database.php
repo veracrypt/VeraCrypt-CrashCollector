@@ -19,6 +19,14 @@ trait Database
             self::$dbh = new PDO($_ENV['DB_DSN'], $_ENV['DB_USER'], $_ENV['DB_PASSWORD']);
 
             self::$dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+            $dbType =  self::$dbh->getAttribute(PDO::ATTR_DRIVER_NAME);
+            switch ($dbType) {
+                case 'sqlite':
+                    $query = "PRAGMA foreign_keys = ON";
+                    self::$dbh->query($query);
+                    break;
+            }
         }
     }
 

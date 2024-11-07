@@ -4,6 +4,7 @@ namespace Veracrypt\CrashCollector\Repository;
 
 use Veracrypt\CrashCollector\Entity\Token;
 use Veracrypt\CrashCollector\Repository\FieldConstraint as FC;
+use Veracrypt\CrashCollector\Storage\Database\Index;
 
 abstract class TokenRepository extends DatabaseRepository
 {
@@ -17,6 +18,8 @@ abstract class TokenRepository extends DatabaseRepository
     protected function __construct(public readonly int $tokenLength)
     {
         $this->fields = $this->getFieldsDefinitions();
+        $this->foreignKeys = $this->getForeignKeyDefinitions();
+        $this->indexes = $this->getIndexesDefinitions();
 
         parent::__construct();
     }
@@ -29,6 +32,19 @@ abstract class TokenRepository extends DatabaseRepository
             'date_created' => new Field('dateCreated', 'integer', [FC::NotNull => true]),
             'expiration_date' => new Field('expirationDate', 'integer', []),
             // could add cols: usage_count, last_usage_datetime
+        ];
+    }
+
+    protected function getForeignKeyDefinitions(): array
+    {
+        return [];
+    }
+
+    protected function getIndexesDefinitions(): array
+    {
+        return [
+            // used by the purge command
+            'idx_' . $this->tableName . '_ed' => new Index(['expiration_date']),
         ];
     }
 

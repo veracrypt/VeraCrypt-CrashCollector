@@ -1,8 +1,8 @@
 <?php
 
-namespace Veracrypt\CrashCollector\Storage;
+namespace Veracrypt\CrashCollector\Storage\Database;
 
-trait DatabaseColumn
+trait Column
 {
     public readonly string $type;
     public readonly array $constraints;

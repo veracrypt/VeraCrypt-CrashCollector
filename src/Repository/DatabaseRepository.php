@@ -2,14 +2,14 @@
 
 namespace Veracrypt\CrashCollector\Repository;
 
-use Veracrypt\CrashCollector\Storage\DatabaseTable;
+use Veracrypt\CrashCollector\Storage\Database\Table;
 
 /**
  * @property Field[] $fields
  */
 abstract class DatabaseRepository
 {
-    use DatabaseTable;
+    use Table;
 
     /**
      * @throws \DomainException

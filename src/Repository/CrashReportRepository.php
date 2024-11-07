@@ -5,6 +5,7 @@ namespace Veracrypt\CrashCollector\Repository;
 use DateTimeInterface;
 use Veracrypt\CrashCollector\Entity\CrashReport;
 use Veracrypt\CrashCollector\Repository\FieldConstraint as FC;
+use Veracrypt\CrashCollector\Storage\Database\Index;
 
 class CrashReportRepository extends DatabaseRepository
 {
@@ -28,7 +29,17 @@ class CrashReportRepository extends DatabaseRepository
             'error_address' => new Field('errorAddress', 'varchar', [FC::Length => 255, FC::NotNull => true]),
             'call_stack' => new Field('callStack', 'blob', [FC::NotNull => true]),
         ];
-
+        /// @todo should we just add a covering index which uses all columns? If so, figure out first the cardinality of each
+        $this->indexes = [
+            'idx_' . $this->tableName . '_dr' => new Index(['date_reported']),
+            'idx_' . $this->tableName . '_pm' => new Index(['program_version']),
+            'idx_' . $this->tableName . '_ov' => new Index(['os_version']),
+            'idx_' . $this->tableName . '_ha' => new Index(['hw_architecture']),
+            'idx_' . $this->tableName . '_es' => new Index(['executable_checksum']),
+            'idx_' . $this->tableName . '_ec' => new Index(['error_category']),
+            'idx_' . $this->tableName . '_ea' => new Index(['error_address']),
+            'idx_' . $this->tableName . '_cs' => new Index(['call_stack']),
+        ];
         parent::__construct();
     }
 
