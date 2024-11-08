@@ -47,6 +47,9 @@ This project is licensed under the [Apache License 2.0](LICENSE).
 - a Redis server
 - Composer, to install the required dependencies
 
+Note: PostgreSQL and MariaDB >= 10.5 should also work as an alternative to SQLite, but so far they have been tested less
+extensively.
+
 ## Installation
 
 1. run `composer install` at the root of the project

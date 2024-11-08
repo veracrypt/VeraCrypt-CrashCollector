@@ -57,7 +57,6 @@ abstract class DatabaseRepository
     protected function storeEntity($value): null|array
     {
         $query = 'insert into ' . $this->tableName . ' (';
-        //$vq = '';
         $bindCols = [];
         $autoIncrementCols = [];
         foreach($this->fields as $colName => $field) {
@@ -72,8 +71,6 @@ abstract class DatabaseRepository
                 continue;
             }
             $bindCols[] = $colName;
-            //$query .= $colName . ', ';
-            //$vq .= ":$colName" . ', ';
         }
         $query .= implode(', ', $bindCols) . ') values (:' . implode(', :', $bindCols) . ')';
         if ($autoIncrementCols) {
