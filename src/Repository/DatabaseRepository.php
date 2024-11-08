@@ -57,24 +57,25 @@ abstract class DatabaseRepository
     protected function storeEntity($value): null|array
     {
         $query = 'insert into ' . $this->tableName . ' (';
-        $vq = '';
+        //$vq = '';
+        $bindCols = [];
         $autoIncrementCols = [];
         foreach($this->fields as $colName => $field) {
-            foreach ($field->constraints as $constraintType => $constraintValue) {
-                if ($constraintType === FieldConstraint::Autoincrement && $constraintValue) {
-                    $entityField = $field->entityField;
-                    if ($entityField == '' || $value->$entityField === null) {
-                        $autoIncrementCols[] = $colName;
-                    }
+            if (isset($field->constraints[FieldConstraint::Autoincrement]) && $field->constraints[FieldConstraint::Autoincrement]) {
+                $entityField = $field->entityField;
+                if ($entityField == '' || $value->$entityField === null) {
+                    $autoIncrementCols[] = $colName;
+                    continue;
                 }
             }
             if ($field->entityField == '') {
                 continue;
             }
-            $query .= $colName . ', ';
-            $vq .= ":$colName" . ', ';
+            $bindCols[] = $colName;
+            //$query .= $colName . ', ';
+            //$vq .= ":$colName" . ', ';
         }
-        $query = substr($query, 0, -2) . ') values (' . substr($vq, 0, -2) . ')';
+        $query .= implode(', ', $bindCols) . ') values (:' . implode(', :', $bindCols) . ')';
         if ($autoIncrementCols) {
             // 'returning' is supported by sqlite >= ..., mariadb >= 10.5, postgresql
             $query .= ' returning ' . implode(', ', $autoIncrementCols);
@@ -83,7 +84,7 @@ abstract class DatabaseRepository
         $stmt = self::$dbh->prepare($query);
         /// @todo test: can `bindvalue` or `execute` fail without throwing?
         foreach($this->fields as $colName => $field) {
-            if ($field->entityField == '') {
+            if (!in_array($colName, $bindCols)) {
                 continue;
             }
             $entityField = $field->entityField;

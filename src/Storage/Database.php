@@ -20,7 +20,7 @@ trait Database
 
             self::$dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-            $dbType =  self::$dbh->getAttribute(PDO::ATTR_DRIVER_NAME);
+            $dbType = self::$dbh->getAttribute(PDO::ATTR_DRIVER_NAME);
             switch ($dbType) {
                 case 'sqlite':
                     $query = "PRAGMA foreign_keys = ON";
@@ -52,17 +52,32 @@ trait Database
      * @return string[] value has to be the table name
      * @throws \DomainException in case of unsupported database type
      * @throws \PDOException
+     * @todo decide if we want to include or exclude views and be consistent about it
      */
     protected function listTables(): array
     {
         $dbType =  self::$dbh->getAttribute(PDO::ATTR_DRIVER_NAME);
-        switch ($dbType) {
-            case 'sqlite':
-                $query = "SELECT name FROM sqlite_schema WHERE type IN ('table','view') AND name NOT LIKE 'sqlite_%'";
-                break;
-            default:
-                throw new \DomainException("Database type '$dbType' is not supported");
-        }
+        // Queries taken from Doctrine DBAL
+        $query = match ($dbType) {
+            'mysql' => "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'",
+            'pgsql' => "SELECT quote_ident(table_name) AS table_name
+                    FROM information_schema.tables
+                    WHERE table_schema NOT LIKE 'pg\_%'
+                    AND table_schema != 'information_schema'
+                    AND table_name != 'geometry_columns'
+                    AND table_name != 'spatial_ref_sys'
+                    AND table_type != 'VIEW'",
+            'sqlite' => "SELECT name FROM sqlite_master
+                    WHERE type = 'table'
+                    AND name != 'sqlite_sequence'
+                    AND name != 'geometry_columns'
+                    AND name != 'spatial_ref_sys'
+                    UNION ALL
+                    SELECT name
+                    FROM sqlite_temp_master
+                    WHERE type = 'table'",
+            default => throw new \DomainException("Database type '$dbType' is not supported"),
+        };
 
         return self::$dbh->query($query)->fetchAll(PDO::FETCH_COLUMN, 0);
     }

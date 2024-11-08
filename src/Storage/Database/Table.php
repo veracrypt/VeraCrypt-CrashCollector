@@ -67,11 +67,17 @@ trait Table
      */
     protected function createTable(): void
     {
+        $dbType = self::$dbh->getAttribute(\PDO::ATTR_DRIVER_NAME);
+
         $query = 'CREATE TABLE ' . $this->tableName . ' (';
         foreach ($this->fields as $colName => $f) {
-            $query .= $colName . ' ' . $f->type . ' ';
+            $type = $f->type;
+            if (isset($f->constraints[FC::Autoincrement]) && $f->constraints[FC::Autoincrement] && $dbType == 'pgsql') {
+                $type = 'serial';
+            }
+            $query .= $colName . ' ' . $type . ' ';
             $constraints = $f->constraints;
-            if (isset($constraints[FC::Length])) {
+            if ($type !== 'serial' && isset($constraints[FC::Length])) {
                 $query .= '(' . $f->constraints[FC::Length] . ') ';
                 unset($constraints[FC::Length]);
             }
@@ -84,7 +90,18 @@ trait Table
                         break;
                     case FC::Autoincrement:
                         if ($cv) {
-                            $query .=  'AUTOINCREMENT ';
+                            switch ($dbType) {
+                                case 'mysql':
+                                    $query .= 'AUTO_INCREMENT ';
+                                    break;
+                                case 'pgsql':
+                                    break;
+                                case 'sqlite':
+                                    $query .= 'AUTOINCREMENT ';
+                                    break;
+                                default:
+                                    throw new \DomainException("Database type '$dbType' is not supported");
+                            }
                         }
                         break;
                     case FC::NotNull:
@@ -111,7 +128,7 @@ trait Table
 
         /// @todo figure out how to enforce the fact that the referenced table has been already created
         foreach ($this->foreignKeys as $fk) {
-            $query .= 'FOREIGN KEY (' . implode(', ', $fk->columns). ') REFERENCES ' . $fk->parentTable. '(' .
+            $query .= 'FOREIGN KEY (' . implode(', ', $fk->columns). ') REFERENCES ' . $fk->parentTable . '(' .
                 implode(', ', $fk->parentColumns). ') ON DELETE ' . $fk->onDelete->value . ' ON UPDATE ' .
                 $fk->onUpdate->value . ', ';
         }
