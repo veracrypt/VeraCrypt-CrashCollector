@@ -34,3 +34,20 @@ Contributions are welcome! Please follow the [contribution guidelines](CONTRIBUT
 
 This project is licensed under the [Apache License 2.0](LICENSE).
 
+## Requirements
+
+- PHP 8.1 and up, with the SQLite extension
+- Composer, to install the required dependencies
+
+## Installation
+
+1. run `composer install` at the root of the project
+2. check the configuration in `.env`, and, if required, change any value by saving it in a file named `.env.local`
+3. make sure that the `var/data` directory is writeable (this is where the app will create its sqlite db by default),
+   as well as `var/cache/twig`
+4. create an administrator user: run the cli command `./bin/console user:create --is-superuser <username> <email> <firstname> <lastname>`
+5. set up the webserver:
+
+    - configure the vhost root directory to be the `public` directory. No http access to any other folder please
+    - make sure .php scripts are executed via the php interpreter
+    - no rewrite rules are necessary

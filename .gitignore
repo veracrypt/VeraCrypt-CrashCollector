@@ -1,0 +1,7 @@
+/.idea/
+/var/cache/twig/
+/var/data/
+/var/logs/
+/vendor/
+/.env.local
+!.gitkeep

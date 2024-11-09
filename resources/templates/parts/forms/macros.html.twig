@@ -1,0 +1,34 @@
+{% macro input(field, css_classes=[]) %}
+    {# @todo allow better styling of the error message: align it below the input field #}
+    {% if field.inputType == 'datetime' %}
+        <label for="{{ field.inputName }}" class="{{ css_classes.label|default('') }}">{{ field.label }}</label>
+        <div class="{{ css_classes.div|default('') }}"><input type="datetime-local" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"></div>
+        {% if field.errorMessage != '' %}<p class="text-danger">{{ field.errorMessage }}</p>{% endif %}
+    {% elseif field.inputType == 'hidden' %}
+        <input type="hidden" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}"/>
+    {% elseif field.inputType == 'submit' %}
+        <div class="{{ css_classes.div|default('') }}"><button type="submit" name="{{ field.inputName }}" value="{{ field.value }}" class="btn btn-primary form-control">{{ field.label }}</button></div>
+    {% elseif field.inputType == 'text' %}
+        <label for="{{ field.inputName }}" class="{{ css_classes.label|default('') }}">{{ field.label }}</label>
+        <div class="{{ css_classes.div|default('') }}"><input type="text" id="{{ field.inputName }}" name="{{ field.inputName }}" value="{{ field.value }}" class="{{ css_classes.input|default('') }}"></div>
+        {% if field.errorMessage != '' %}<p class="text-danger">{{ field.errorMessage }}</p>{% endif %}
+    {% elseif field.inputType == 'textarea' %}
+        <label for="{{ field.inputName }}" class="{{ css_classes.label|default('') }}">{{ field.label }}</label>
+        <div class="{{ css_classes.div|default('') }}"><textarea id="{{ field.inputName }}" name="{{ field.inputName }}" class="{{ css_classes.input|default('') }}">{{ field.value }}</textarea></div>
+        {% if field.errorMessage != '' %}<p class="text-danger">{{ field.errorMessage }}</p>{% endif %}
+    {% endif %}
+{% endmacro %}
+
+{% macro paginator(current_page, num_pages, form_url) %}
+    {% if num_pages > 1 %}
+        Page
+        {% for i in 0 .. num_pages - 1 %}
+            {% if i == current_page %}
+                {{ i + 1 }}
+            {% else %}
+                <a href="{{ form_url }}&pn={{ i }}">{{ i + 1 }}</a>
+            {% endif %}
+            {% if i < num_pages -1 %}|{% endif %}
+        {% endfor %}
+    {% endif %}
+{% endmacro %}

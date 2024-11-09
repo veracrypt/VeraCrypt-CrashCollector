@@ -1,0 +1,22 @@
+{
+    "name": "veracrypt/veracrypt-crashcollector",
+    "description": "a web application designed to gather and manage crash reports from the VeraCrypt desktop application running on Linux and macOS",
+    "license": "Apache-2.0",
+    "require": {
+        "php": "^8.1",
+        "ext-pdo": "*",
+        "ext-sqlite3": "*",
+        "psr/log": "^3.0.2",
+        "symfony/console": "^6.4.12",
+        "twig/twig": "^3.14.0"
+    },
+    "require-dev": {
+    },
+    "suggest": {
+    },
+    "scripts": {
+    },
+    "autoload": {
+        "psr-4": {"Veracrypt\\CrashCollector\\": "src/"}
+    }
+}
