@@ -3,6 +3,7 @@
 namespace Veracrypt\CrashCollector\Security;
 
 use Veracrypt\CrashCollector\Entity\User;
+use Veracrypt\CrashCollector\EnvVarProcessor;
 use Veracrypt\CrashCollector\Exception\UserNotAuthorizedException;
 use Veracrypt\CrashCollector\Exception\UserNotFoundException;
 use Veracrypt\CrashCollector\Form\LoginForm;
@@ -166,13 +167,17 @@ class Firewall
     public function getAdminUrls(): array
     {
         $router = new Router();
-        return [
+        $urls = [
             'root' => $router->generate(__DIR__ . '/../../public'),
             'home' => $router->generate(__DIR__ . '/../../public/admin/index.php'),
             'login' => $router->generate(__DIR__ . '/../../public/admin/login.php'),
             'logout' => $router->generate(__DIR__ . '/../../public/admin/logout.php'),
             'resetpassword' => $router->generate(__DIR__ . '/../../public/admin/resetpassword.php'),
-            'forgotpassword' => $router->generate(__DIR__ . '/../../public/admin/forgotpassword.php'),
+
         ];
+        if (EnvVarProcessor::bool($_ENV['ENABLE_FORGOTPASSWORD'])) {
+            $urls['forgotpassword'] = $router->generate(__DIR__ . '/../../public/admin/forgotpassword.php');
+        }
+        return $urls;
     }
 }

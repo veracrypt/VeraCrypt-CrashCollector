@@ -2,6 +2,7 @@
 
 require_once(__DIR__ . '/../../autoload.php');
 
+use Veracrypt\CrashCollector\EnvVarProcessor;
 use Veracrypt\CrashCollector\Form\ForgotPasswordEmailForm;
 use Veracrypt\CrashCollector\Form\SetNewPasswordForm;
 use Veracrypt\CrashCollector\Logger;
@@ -13,6 +14,11 @@ use Veracrypt\CrashCollector\Templating;
 
 $firewall = Firewall::getInstance();
 $router = new Router();
+
+if (!EnvVarProcessor::bool($_ENV['ENABLE_FORGOTPASSWORD'])) {
+    header('Location: ' . $router->generate(__DIR__ . '/index.php'), true, 303);
+    exit();
+}
 
 // if non-anon user, redirect to resetpassword instead of using this form
 $currentUser = $firewall->getUser();
