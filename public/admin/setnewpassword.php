@@ -18,6 +18,7 @@ $router = new Router();
 $currentUser = $firewall->getUser();
 if ($currentUser->isAuthenticated()) {
     header('Location: ' . $router->generate(__DIR__ . '/resetpassword.php'), true, 303);
+    exit();
 }
 
 // as per owasp recommendations - https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html#url-tokens

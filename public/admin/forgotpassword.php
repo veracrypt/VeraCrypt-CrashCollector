@@ -21,6 +21,7 @@ $tpl = new Templating();
 $user = $firewall->getUser();
 if ($user->isAuthenticated()) {
     header('Location: ' . $router->generate(__DIR__ . '/resetpassword.php'), true, 303);
+    exit();
 }
 
 $form = new ForgotPasswordForm($router->generate(__FILE__));
