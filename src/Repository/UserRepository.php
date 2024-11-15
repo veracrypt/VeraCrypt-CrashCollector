@@ -3,21 +3,28 @@
 namespace Veracrypt\CrashCollector\Repository;
 
 use Veracrypt\CrashCollector\Entity\User;
+use Veracrypt\CrashCollector\Logger;
 use Veracrypt\CrashCollector\Repository\FieldConstraint as FC;
+use Veracrypt\CrashCollector\Storage\Database\Index;
 
-class UserRepository extends Repository
+class UserRepository extends DatabaseRepository
 {
-    protected $tableName = 'auth_user';
+    protected string $tableName = 'auth_user';
+    protected Logger $logger;
 
+    /**
+     * @throws \DomainException in case of unsupported database type
+     * @trows \PDOException
+     */
     public function __construct()
     {
         // Col names, type and size are inspired from Django + Symfony.
         $this->fields = [
-            /// @todo should we disallow '' as value for all non-null string fields? Sqlite f.e. supports `CHECK()`
             /// @todo make the SQL more portable - `autoincrement` does not exist in either MySQL or Postgresql - drop the id col altogether?
             'id' => new Field(null, 'integer', [FC::NotNull => true, FC::PK => true, FC::Autoincrement => true]),
             'username' => new Field('username', 'varchar', [FC::Length => 180, FC::NotNull => true, FC::Unique => true]),
             'password' => new Field('passwordHash', 'varchar', [FC::Length => 255, FC::NotNull => true]),
+            // q: should we make emails unique?
             'email' => new Field('email', 'varchar', [FC::Length => 254, FC::NotNull => true]),
             'first_name' => new Field('firstName', 'varchar', [FC::Length => 150, FC::NotNull => true]),
             'last_name' => new Field('lastName', 'varchar', [FC::Length => 150, FC::NotNull => true]),
@@ -27,12 +34,19 @@ class UserRepository extends Repository
             //'is_staff' => new Field('isStaff', 'bool', [FC::NotNull => true, FC::Default => 'false']),
             'is_superuser' => new Field('isSuperuser', 'bool', [FC::NotNull => true, FC::Default => 'false']),
         ];
+        $this->indexes = [
+            // afaik, an unique index on username will have been created automatically to enforce FC::Unique
+            //'idx_' . $this->tableName . '_un' => new Index(['username'], true),
+            'idx_' . $this->tableName . '_em' => new Index(['email']),
+        ];
+        $this->logger = Logger::getInstance('audit');
 
         parent::__construct();
     }
 
     /**
      * Note: this does not validate the length of the fields, nor truncate or validate them
+     * @throws \PDOException
      */
     public function createUser(string $username, string $passwordHash, string $email, string $firstName,
         string $lastName, bool $isSuperUser = false, bool $isActive = true): User
@@ -40,26 +54,43 @@ class UserRepository extends Repository
         $dateJoined = time();
         $user = new User($username, $passwordHash, $email, $firstName, $lastName, $dateJoined, null, $isActive, $isSuperUser);
         $this->storeEntity($user);
+        $this->logger->debug("User '$username' was created");
         return $user;
     }
 
-    /*
+    /**
+     * @throws \PDOException
+     */
     public function fetchUser(string $username): User|null
     {
         $query = $this->buildFetchEntityQuery() . ' where username = :username';
         $stmt = self::$dbh->prepare($query);
         $stmt->bindValue(':username', $username);
         $stmt->execute();
-        $result = $stmt->fetchObject(User::class);
-        return $result ? $result : null;
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $result ? new User(...$result) : null;
     }
-    */
+
+    /**
+     * @return User[]
+     * @throws \PDOException
+     */
+    public function fetchUsersByEmail(string $email): array
+    {
+        $query = $this->buildFetchEntityQuery() . ' where email = :email';
+        $stmt = self::$dbh->prepare($query);
+        $stmt->bindValue(':email', $email);
+        $stmt->execute();
+        $results = $stmt->fetchAll(\PDO::FETCH_NUM);
+        return array_map(static fn($result) => new User(...$result), $results);
+    }
 
     /**
      * NB: passing in an empty string for any value will trigger the data to be updated in the DB, unlike passing in a NULL.
      * This might be unexpected...
-     * @todo we could allow the username to be changed too, by adding a $newUsername argument
+     * @todo we could allow the username to be changed too, by adding a $newUsername argument (unless we make it the PK...)
      * @throws \BadMethodCallException
+     * @throws \PDOException
      */
     public function updateUser(string $username, ?string $passwordHash = null, ?string $email = null, ?string $firstName = null,
         ?string $lastName = null, ?bool $isSuperUser = null, ?bool $isActive = null): bool
@@ -98,36 +129,67 @@ class UserRepository extends Repository
         }
         $stmt->bindValue(":username", $username);
         $stmt->execute();
-        return (bool)$stmt->rowCount();
+        $updated = (bool)$stmt->rowCount();
+        if ($updated) {
+            $this->logger->debug("User '$username' was updated");
+        }
+        return $updated;
     }
 
+    /**
+     * @throws \PDOException
+     */
     public function deleteUser(string $username): bool
     {
         $query = 'delete from ' . $this->tableName . ' where username = :username';
         $stmt = self::$dbh->prepare($query);
         $stmt->bindValue(':username', $username);
         $stmt->execute();
-        return (bool)$stmt->rowCount();
+        $deleted = (bool)$stmt->rowCount();
+        if ($deleted) {
+            $this->logger->debug("User '$username' was deleted");
+        }
+        return $deleted;
     }
 
+    /**
+     * NB: this returns false if the user exists and if it was already activated
+     * @throws \PDOException
+     */
     public function activateUser(string $username): bool
     {
-        $query = 'update ' . $this->tableName . ' set is_active = true where username = :username';
+        $query = 'update ' . $this->tableName . ' set is_active = true where username = :username and is_active = false';
         $stmt = self::$dbh->prepare($query);
         $stmt->bindValue(':username', $username);
         $stmt->execute();
-        return (bool)$stmt->rowCount();
+        $activated = (bool)$stmt->rowCount();
+        if ($activated) {
+            $this->logger->debug("User '$username' was activated");
+        }
+        return $activated;
     }
 
+    /**
+     * NB: this returns false if the user exists and it was already deactivated
+     * @throws \PDOException
+     */
     public function deactivateUser(string $username): bool
     {
-        $query = 'update ' . $this->tableName . ' set is_active = false where username = :username';
+        $query = 'update ' . $this->tableName . ' set is_active = false where username = :username and is_active = true';
         $stmt = self::$dbh->prepare($query);
         $stmt->bindValue(':username', $username);
         $stmt->execute();
-        return (bool)$stmt->rowCount();
+        $deactivated = (bool)$stmt->rowCount();
+        if ($deactivated) {
+            $this->logger->debug("User '$username' was deactivated");
+        }
+        return $deactivated;
     }
 
+    /**
+     * Call this when the user logged in
+     * @throws \PDOException
+     */
     public function userLoggedIn(string $username): bool
     {
         /// @todo add a condition on existing last_login not being later than the new one?
@@ -142,6 +204,7 @@ class UserRepository extends Repository
     /**
      * @return mixed[][] we return arrays instead of value-objects, to make it easy for the console table helper.
      *                   This is also why the password hash is omitted.
+     * @throws \PDOException
      */
     public function listUsers(): Array
     {

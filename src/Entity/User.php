@@ -4,6 +4,8 @@ namespace Veracrypt\CrashCollector\Entity;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use Veracrypt\CrashCollector\Security\UserInterface;
+use Veracrypt\CrashCollector\Security\UserRole;
 
 /**
  * @property-read int $dateJoined
@@ -11,7 +13,7 @@ use DateTimeInterface;
  * @property-read int|null $lastLogin
  * @property-read DateTimeImmutable|null $lastLoginDT
  */
-class User
+class User implements UserInterface
 {
     // we store timestamps as properties instead of datetimes in order to be able to use PDO automatic hydration to object
     private int $dateJoined;
@@ -39,6 +41,30 @@ class User
         } else {
             $this->lastLogin = $lastLogin->getTimestamp();
         }
+    }
+
+    public function getRoles(): array
+    {
+        $roles = [UserRole::User];
+        if ($this->isSuperuser) {
+            $roles[] = UserRole::Admin;
+        }
+        return $roles;
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->username;
+    }
+
+    public function isAuthenticated(): bool
+    {
+        return true;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
     }
 
     public function __get($name)

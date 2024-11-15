@@ -15,6 +15,7 @@ class CrashReport
     private int $dateReported;
 
     public function __construct(
+        public readonly ?int $id,
         int|DateTimeInterface $dateReported,
         public readonly string $programVersion,
         public readonly string $osVersion,

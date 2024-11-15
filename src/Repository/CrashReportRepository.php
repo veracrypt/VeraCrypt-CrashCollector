@@ -5,16 +5,21 @@ namespace Veracrypt\CrashCollector\Repository;
 use DateTimeInterface;
 use Veracrypt\CrashCollector\Entity\CrashReport;
 use Veracrypt\CrashCollector\Repository\FieldConstraint as FC;
+use Veracrypt\CrashCollector\Storage\Database\Index;
 
-class CrashReportRepository extends Repository
+class CrashReportRepository extends DatabaseRepository
 {
-    protected $tableName = 'crash_report';
+    protected string $tableName = 'crash_report';
 
+    /**
+     * @throws \DomainException in case of unsupported database type
+     * @trows \PDOException
+     */
     public function __construct()
     {
         /// @todo add a 'hash' column as PK instead of the ID? If so, it could/should probably include the source IP too...
         $this->fields = [
-            'id' => new Field(null, 'integer', [FC::NotNull => true, FC::PK => true, FC::Autoincrement => true]),
+            'id' => new Field('id', 'integer', [FC::NotNull => true, FC::PK => true, FC::Autoincrement => true]),
             'date_reported' => new Field('dateReported', 'integer', [FC::NotNull => true]),
             'program_version' => new Field('programVersion', 'varchar', [FC::Length => 255, FC::NotNull => true]),
             'os_version' => new Field('osVersion', 'varchar', [FC::Length => 255, FC::NotNull => true]),
@@ -24,25 +29,68 @@ class CrashReportRepository extends Repository
             'error_address' => new Field('errorAddress', 'varchar', [FC::Length => 255, FC::NotNull => true]),
             'call_stack' => new Field('callStack', 'blob', [FC::NotNull => true]),
         ];
-
+        /// @todo should we just add a covering index which uses all columns? If so, figure out first the cardinality of each
+        $this->indexes = [
+            'idx_' . $this->tableName . '_dr' => new Index(['date_reported']),
+            'idx_' . $this->tableName . '_pm' => new Index(['program_version']),
+            'idx_' . $this->tableName . '_ov' => new Index(['os_version']),
+            'idx_' . $this->tableName . '_ha' => new Index(['hw_architecture']),
+            'idx_' . $this->tableName . '_es' => new Index(['executable_checksum']),
+            'idx_' . $this->tableName . '_ec' => new Index(['error_category']),
+            'idx_' . $this->tableName . '_ea' => new Index(['error_address']),
+            'idx_' . $this->tableName . '_cs' => new Index(['call_stack']),
+        ];
         parent::__construct();
     }
 
     /**
      * Note: this does not validate the length of the fields, nor truncate them. The length validation is left to the Form
+     * @throws \PDOException
      */
     public function createReport(string $programVersion, string $osVersion, string $hwArchitecture, string $executableChecksum,
         string $errorCategory, string $errorAddress, string $callStack): CrashReport
     {
         $dateReported = time();
-        $cr = new CrashReport($dateReported, $programVersion, $osVersion, $hwArchitecture, $executableChecksum, $errorCategory,
+        $cr = new CrashReport(null, $dateReported, $programVersion, $osVersion, $hwArchitecture, $executableChecksum, $errorCategory,
             $errorAddress, $callStack);
-        $this->storeEntity($cr);
-        return $cr;
+        $autoincrements = $this->storeEntity($cr);
+        // we have to create a new entity object in order to inject the id into it
+        return new CrashReport($autoincrements['id'], $dateReported, $programVersion, $osVersion, $hwArchitecture,
+            $executableChecksum, $errorCategory, $errorAddress, $callStack);
+    }
+
+    /**
+     * @throws \PDOException
+     */
+    public function fetchReport(int $id): CrashReport|null
+    {
+        $query = $this->buildFetchEntityQuery() . ' where id = :id';
+        $stmt = self::$dbh->prepare($query);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $result ? new CrashReport(...$result) : null;
+    }
+
+    /**
+     * @throws \PDOException
+     */
+    public function deleteReport(int $id): bool
+    {
+        $query = 'delete from ' . $this->tableName . ' where id = :id';
+        $stmt = self::$dbh->prepare($query);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+        $deleted = (bool)$stmt->rowCount();
+        //if ($deleted) {
+        //    $this->logger->debug("Report '$id' was deleted");
+        //}
+        return $deleted;
     }
 
     /**
      * @return CrashReport[]
+     * @throws \PDOException
      */
     public function searchReports(int $limit, int $offset = 0, ?string $programVersion = null, ?string $osVersion = null,
         ?string $hwArchitecture = null, ?string $executableChecksum = null, ?string $errorCategory = null, ?string $errorAddress = null,
@@ -69,6 +117,9 @@ class CrashReportRepository extends Repository
         return array_map(static fn($result) => new CrashReport(...$result), $results);
     }
 
+    /**
+     * @throws \PDOException
+     */
     public function countReports(?string $programVersion = null, ?string $osVersion = null, ?string $hwArchitecture = null,
         ?string $executableChecksum = null, ?string $errorCategory = null, ?string $errorAddress = null, null|int|DateTimeInterface $minDate = null,
         null|int|DateTimeInterface $maxDate = null): int

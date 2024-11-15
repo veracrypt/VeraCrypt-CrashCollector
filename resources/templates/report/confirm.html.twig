@@ -1,0 +1,37 @@
+{% extends "base.html.twig" %}
+
+{% block pagetitle %}VeraCrypt Crash Collector | Confirm Report{% endblock %}
+
+{% block content %}
+    {% import "parts/forms/macros.html.twig" as forms %}
+    {% if error != '' %}
+        <p class="text-danger">{{ error }}</p>
+    {% elseif form.isSubmitted() and form.isValid() %}
+        <p class="text-success">The crash report has been deleted</p>
+    {% else %}
+        <form action="{{ form.actionUrl }}" method="{{ form.getMethod() }}" class="border p-3 rounded">
+            <p>This is the Crash Report that you have just uploaded:</p>
+            <p><b>NB</b> please use the Report Id for all future communications</p>
+            {% if form.errorMessage|default('') != '' %}
+                <p class="text-danger">{{ form.errorMessage }}</p>
+            {% endif %}
+            <div class="row mb-3">
+                {{ forms.input(form.getField('id'), {'label': 'col-sm-2 col-form-label', 'div': 'col-sm-10', 'input': 'form-control'}, {'spellcheck': 'false'}) }}
+            </div>
+            <div class="row mb-3">
+                {{ forms.input(form.getField('reported'), {'label': 'col-sm-2 col-form-label', 'div': 'col-sm-10', 'input': 'form-control'}, {'spellcheck': 'false'}) }}
+            </div>
+            {{ include('parts/forms/cr_common_fields.html.twig') }}
+            <div class="row mb-3">
+                {{ forms.input(form.getField('callStack'), {'label': 'col-sm-2 col-form-label', 'div': 'col-sm-10', 'input': 'form-control'}, {'spellcheck': 'false'}) }}
+            </div>
+            <div class="row">
+                {{ forms.input(form.getField('token')) }}
+                {{ forms.input(form.getField('secret')) }}
+                <div class="col-sm-8">If you are not happy with it, you can delete it now. Otherwise, there is nothing else that you need to do.</div>
+                {{ forms.input(form.getSubmit(), {'input': 'btn btn-primary form-control', 'div': 'col-sm-4'}) }}
+            </div>
+        </form>
+    {% endif %}
+
+{% endblock %}

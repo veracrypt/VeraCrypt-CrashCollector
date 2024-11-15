@@ -14,6 +14,8 @@ use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Veracrypt\CrashCollector\Repository\ForgotPasswordTokenRepository;
+use Veracrypt\CrashCollector\Repository\ManageReportTokenRepository;
 use Veracrypt\CrashCollector\Repository\UserRepository;
 use Veracrypt\CrashCollector\Security\PasswordHasher;
 
@@ -122,12 +124,15 @@ $application->register('user:update')
     ->addOption('is-superuser', null, InputOption::VALUE_REQUIRED, 'Use a 1/0 value to enable/disable')
     ->addOption('is-inactive', null, InputOption::VALUE_REQUIRED, 'Use a 1/0 value to enable/disable')
     ->setCode(function (InputInterface $input, OutputInterface $output): int {
+        $ph = new PasswordHasher();
         $ur = new UserRepository();
         $isSuperuser = $input->getOption('is-superuser') !== null ? (bool)$input->getOption('is-superuser') : null;
         $isActive = $input->getOption('is-inactive') !== null ? !$input->getOption('is-inactive') : null;
+        /// @todo move the hash creation to the Repository?
+        $passwordHash = $input->getOption('password') !== null ? $ph->hash($input->getOption('password')) : null;
         if (!$ur->updateUser(
             $input->getArgument('username'),
-            $input->getOption('password'),
+            $passwordHash,
             $input->getOption('email'),
             $input->getOption('first-name'),
             $input->getOption('last-name'),
@@ -138,6 +143,16 @@ $application->register('user:update')
             return Command::FAILURE;
         }
         $output->writeln("User updated");
+        return Command::SUCCESS;
+    });
+
+$application->register('tokens:prune')
+    ->setCode(function (InputInterface $input, OutputInterface $output): int {
+        $repo = new ForgotPasswordTokenRepository();
+        $repo->prune();
+        $repo = new ManageReportTokenRepository();
+        $repo->prune();
+        $output->writeln("Expired tokens deleted: forgotpassword and managereport");
         return Command::SUCCESS;
     });
 

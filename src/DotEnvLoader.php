@@ -7,7 +7,7 @@ use Veracrypt\CrashCollector\Exception\ConfigurationException;
 class DotEnvLoader
 {
     /// @see https://pubs.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap08.html
-    protected static $VARNAME_REGEX = '/^(?:export[ \t]+)?([a-zA-Z_][a-zA-Z0-9_]*)/';
+    protected static string $VARNAME_REGEX = '/^(?:export[ \t]+)?([a-zA-Z_][a-zA-Z0-9_]*)/';
 
     /**
      * Loads values from a .env file and the corresponding .env.local file if they exist.
@@ -108,7 +108,8 @@ class DotEnvLoader
             }
 
             $_ENV[$name] = $value;
-            /// @todo should we log a warning in case of a .env var starting with HTTP_ ?
+            /// @todo should we log a warning in case of a .env var starting with HTTP_ ? Note hat the logger class
+            ///       depends on the dotenv config having been set up already...
             if (!str_starts_with($name, 'HTTP_')) {
                 $_SERVER[$name] = $value;
             }
