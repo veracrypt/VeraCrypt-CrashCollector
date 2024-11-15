@@ -10,6 +10,8 @@ after VeraCrypt detects a crash has occurred.
 The collected crash reports provide vital information to improve the stability and performance of VeraCrypt by helping
 to identify and resolve issues.
 
+Similar projects are f.e. https://github.com/tdf/crash-srv.
+
 ## Crash Reporting Mechanism
 
 When a crash occurs, the following information is gathered by the crash reporting system:
