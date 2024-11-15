@@ -62,18 +62,38 @@ extensively.
 
     - for a production installation, it is recommended to follow the owasp guidelines available at
        https://cheatsheetseries.owasp.org/cheatsheets/PHP_Configuration_Cheat_Sheet.html
-    - it is recommended to use Redis for php session storage
+    - it is recommended to use Redis for php session storage instead of the default file-based storage
 5. create an administrator user: run the cli command `php ./bin/console user:create --is-superuser <username> <email> <firstname> <lastname>`
 6. set up a cronjob (daily or weekly is fine) running the cli command `php ./bin/console token:prune`
 7. set up the webserver:
 
     - configure the vhost root directory to be the `public` directory. No http access to any other folder please
     - make sure .php scripts are executed via the php interpreter
-    - the file to serve when a directory index is requested is `index.php`
+    - the file to serve when a directory index is requested should be `index.php`
     - no rewrite rules are necessary
-8. navigate to `https://your-host/report/upload.php` to upload crash reports; to `https://your-host/admin/` for browsing them
-9. optionally, run the SQLite pragma `journal_mode=WAL` to have optimized performance and concurrency
-10. optionally, set up cronjobs to run the SQLite pragmas `optimize` and `integrity_check`
+8. navigate to `https://your-host/report/upload.php` to upload crash reports; to `https://your-host/admin/index.php` for browsing them
+
+### Advanced configuration
+
+* Removing `.php` from the URLs used by the application
+
+  In order to have the application use "php-less" URLs, you have to 1. set up the webserver so that it will try to
+  pass requests for URLs not ending in `.php` to the php interpreter, and 2. configure the application accordingly.
+
+  Point 1 can be done, for Nginx, following f.e. the instructions at
+  https://serverfault.com/questions/761627/nginx-rewrite-to-remove-php-from-files-has-no-effect-but-to-redirect-to-homepag
+
+  For point 2, add `URLS_STRIP_INDEX_DOT_PHP=true` and `URLS_STRIP_PHP_EXTENSION=true` to file `.env.local`
+
+* Optimizing SQLite performance and scalability
+
+  Optionally, run the SQLite pragma `journal_mode=WAL` to have optimized performance and concurrency
+
+  Optionally, set up cronjobs to run the SQLite pragmas `optimize` and `integrity_check`
+
+* Using Redis for PHP session storage
+
+  Google is your friend - there are countless guides for this.
 
 ## How it works
 

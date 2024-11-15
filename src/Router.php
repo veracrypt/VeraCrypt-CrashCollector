@@ -11,11 +11,11 @@ class Router
 
     public function __construct()
     {
-        /// @todo allow setting $stripPhpExtension and $stripIndexDotPhp from $_ENV
-
         $this->rootUrl = $_ENV['ROOT_URL'];
         // nb: realpath trims the trailing slash
         $this->rootDir = realpath(__DIR__ . '/../public/');
+        $this->stripPhpExtension = EnvVarProcessor::bool($_ENV['URLS_STRIP_PHP_EXTENSION']);
+        $this->stripIndexDotPhp = EnvVarProcessor::bool($_ENV['URLS_STRIP_INDEX_DOT_PHP']);
     }
 
     /**
