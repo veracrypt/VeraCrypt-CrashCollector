@@ -68,7 +68,6 @@ if (!$form1->isSubmitted() && !$form2->isSubmitted()) {
 
 $tpl = new Templating();
 echo $tpl->render('admin/setnewpassword.html.twig', [
-    //'user' => $tokenUser,
     'error' => $errorMessage,
     'form' => $form2,
     'urls' => $firewall->getAdminUrls(),

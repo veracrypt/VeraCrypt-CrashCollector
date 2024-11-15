@@ -62,21 +62,43 @@ extensively.
        https://cheatsheetseries.owasp.org/cheatsheets/PHP_Configuration_Cheat_Sheet.html
     - it is recommended to use Redis for php session storage
 5. create an administrator user: run the cli command `php ./bin/console user:create --is-superuser <username> <email> <firstname> <lastname>`
-6. set up a cronjob (daily or weekly is fine) running the cli command `php ./bin/console forgotpasswordtoken:prune`
+6. set up a cronjob (daily or weekly is fine) running the cli command `php ./bin/console token:prune`
 7. set up the webserver:
 
     - configure the vhost root directory to be the `public` directory. No http access to any other folder please
     - make sure .php scripts are executed via the php interpreter
+    - the file to serve when a directory index is requested is `index.php`
     - no rewrite rules are necessary
-8. navigate to `https://your-host/upload/` to upload crash reports; to `https://your-host/admin/` for browsing them
+8. navigate to `https://your-host/report/upload.php` to upload crash reports; to `https://your-host/admin/` for browsing them
 9. optionally, run the SQLite pragma `journal_mode=WAL` to have optimized performance and concurrency
 10. optionally, set up cronjobs to run the SQLite pragmas `optimize` and `integrity_check`
 
 ## How it works
 
 Once uploaded, crash reports are stored in a SQLite database. They are not available for examination to the public, but
-only to users of this web application.
+only to registered users of this web application. For a short time after the upload, the submitter of a crash report can
+see the uploaded data and is given a chance to remove it if desired.
 
 The web interface is kept extremely simple by design. Besides supporting the anonymous upload of the crash reports, it
 allows application users to browse them and to change their own login password. The only way to manage the application's
 users accounts (create, remove, update, enable/disable them) is via a command-line script.
+
+### The upload API
+
+The interaction between VeraCrypt and the Crash Collector is the following:
+
+1. VeraCrypt sends a POST request to the url `/report/upload.php` using `application/x-www-form-urlencoded` encoding.
+   In case of success, a 303 redirection response is returned.
+   In case of errors with the POST request data, a 400 response is returned, with `plain/text` content tipe, and
+   error messages displayed one per line.
+   In case of unexpected / server errors, a 40x or 50x response can also be returned.
+2. In case of a successful upload, VeraCrypt should start a browser session and send the user to the redirection target
+   URL given at step 1.
+
+Rate limiting is implemented, to avoid spamming of the upload page.
+
+### Troubleshooting and Debugging
+
+The name of the fields to submit at step 1 above can be seen by setting `ENABLE_BROWSER_UPLOAD=true` in config. file
+`.env.local`, and pointing a browser at the `/report/upload.php` URL.
+That results in the display of a crash-report upload form which can be filled in manually.

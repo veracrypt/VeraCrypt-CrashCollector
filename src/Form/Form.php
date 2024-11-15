@@ -124,6 +124,20 @@ abstract class Form
         return $data;
     }
 
+    /**
+     * @return string[] key: field name
+     */
+    public function getFieldsErrors($onlyVisibleFields = true): array
+    {
+        $errors = [];
+        foreach($this->fields as $name => $field) {
+            if (($field->errorMessage !== '' && $field->errorMessage !== null) && ($field->isVisible || !$onlyVisibleFields)) {
+                $errors[$name] = $field->errorMessage;
+            }
+        }
+        return $errors;
+    }
+
     public function getQueryStringParts(bool $includeSubmit = false)
     {
         if ($this->submitOn == self::ON_POST) {

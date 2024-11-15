@@ -21,9 +21,7 @@ class RateLimiter extends BaseField
     /**
      * @var RateLimiterInterface[] $constraints
      */
-    public function __construct(
-        array $constraints
-    )
+    public function __construct(array $constraints)
     {
         parent::__construct('ratelimiter', '', '', [], null, false);
 

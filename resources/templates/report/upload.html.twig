@@ -3,7 +3,9 @@
 {% block content %}
 {% import "parts/forms/macros.html.twig" as forms %}
 {% if form.isSubmitted() and form.isValid() %}
-    <p class="text-success">Thank you for taking the time to submit the information and sorry for your hassles.</p>
+    <p class="text-success">Thank you for taking the time to submit the information and sorry for your hassles.<br/>
+    You can see, and remove, your submission following <a href="{{ urls.confirm }}">this link</a>, within the next hour.
+    </p>
 {% else %}
     <form action="{{ form.actionUrl }}" method="{{ form.getMethod() }}" class="border p-3 rounded">
         {% if form.errorMessage|default('') != '' %}

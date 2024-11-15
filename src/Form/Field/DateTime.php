@@ -9,9 +9,9 @@ use Veracrypt\CrashCollector\Form\Field as Basefield;
  */
 class DateTime extends Basefield
 {
-    public function __construct(string $label, string $inputName, array $constraints = [], mixed $value = null)
+    public function __construct(string $label, string $inputName, array $constraints = [], mixed $value = null, bool $isReadOnly = false)
     {
-        parent::__construct('datetime-local', $label, $inputName, $constraints, $value);
+        parent::__construct('datetime-local', $label, $inputName, $constraints, $value, true, $isReadOnly);
     }
 
     /**

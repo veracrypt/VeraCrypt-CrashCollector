@@ -42,11 +42,9 @@ class ForgotPasswordEmailForm extends BaseForm
 
     protected function validateSubmit(?array $request = null): void
     {
-        if ($this->isValid) {
-            // use the same error message used for invalid token-ids
-            if (!$this->userConstraint->validateHash($this->getFieldData('secret'))) {
-                $this->setError("Token not found");
-            }
+        // use the same error message used for invalid token-ids
+        if (!$this->userConstraint->validateHash($this->getFieldData('secret'))) {
+            $this->setError("Token not found");
         }
     }
 

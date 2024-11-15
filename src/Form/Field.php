@@ -26,7 +26,8 @@ abstract class Field
         public readonly string $inputName,
         public readonly array $constraints = [],
         protected mixed $value = null,
-        public readonly bool $isVisible = true
+        public readonly bool $isVisible = true,
+        public readonly bool $isReadonly = false
     )
     {
         $this->validateConstraintsDefinitions($constraints);

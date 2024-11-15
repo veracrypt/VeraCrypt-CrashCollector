@@ -6,9 +6,9 @@ use Veracrypt\CrashCollector\Form\Field as Basefield;
 
 class Email extends Basefield
 {
-    public function __construct(string $label, string $inputName, array $constraints = [], ?string $value = null)
+    public function __construct(string $label, string $inputName, array $constraints = [], ?string $value = null, bool $isReadOnly = false)
     {
-        parent::__construct('email', $label, $inputName, $constraints, $value);
+        parent::__construct('email', $label, $inputName, $constraints, $value, true, $isReadOnly);
     }
 
     protected function validateValue(mixed $value): null|string

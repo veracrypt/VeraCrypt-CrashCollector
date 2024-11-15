@@ -19,7 +19,7 @@ class CrashReportRepository extends DatabaseRepository
     {
         /// @todo add a 'hash' column as PK instead of the ID? If so, it could/should probably include the source IP too...
         $this->fields = [
-            'id' => new Field(null, 'integer', [FC::NotNull => true, FC::PK => true, FC::Autoincrement => true]),
+            'id' => new Field('id', 'integer', [FC::NotNull => true, FC::PK => true, FC::Autoincrement => true]),
             'date_reported' => new Field('dateReported', 'integer', [FC::NotNull => true]),
             'program_version' => new Field('programVersion', 'varchar', [FC::Length => 255, FC::NotNull => true]),
             'os_version' => new Field('osVersion', 'varchar', [FC::Length => 255, FC::NotNull => true]),
@@ -51,10 +51,41 @@ class CrashReportRepository extends DatabaseRepository
         string $errorCategory, string $errorAddress, string $callStack): CrashReport
     {
         $dateReported = time();
-        $cr = new CrashReport($dateReported, $programVersion, $osVersion, $hwArchitecture, $executableChecksum, $errorCategory,
+        $cr = new CrashReport(null, $dateReported, $programVersion, $osVersion, $hwArchitecture, $executableChecksum, $errorCategory,
             $errorAddress, $callStack);
-        $this->storeEntity($cr);
-        return $cr;
+        $autoincrements = $this->storeEntity($cr);
+        // we have to create a new entity object in order to inject the id into it
+        return new CrashReport($autoincrements['id'], $dateReported, $programVersion, $osVersion, $hwArchitecture,
+            $executableChecksum, $errorCategory, $errorAddress, $callStack);
+    }
+
+    /**
+     * @throws \PDOException
+     */
+    public function fetchReport(int $id): CrashReport|null
+    {
+        $query = $this->buildFetchEntityQuery() . ' where id = :id';
+        $stmt = self::$dbh->prepare($query);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $result ? new CrashReport(...$result) : null;
+    }
+
+    /**
+     * @throws \PDOException
+     */
+    public function deleteReport(int $id): bool
+    {
+        $query = 'delete from ' . $this->tableName . ' where id = :id';
+        $stmt = self::$dbh->prepare($query);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+        $deleted = (bool)$stmt->rowCount();
+        //if ($deleted) {
+        //    $this->logger->debug("Report '$id' was deleted");
+        //}
+        return $deleted;
     }
 
     /**
