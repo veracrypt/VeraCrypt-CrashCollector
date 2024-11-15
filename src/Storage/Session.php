@@ -72,6 +72,7 @@ trait Session
             /// @todo once we have improved `regenerate` so that it keeps around the old session and adds specific
             ///       data to it, check here for its presence
 
+            // NB: this sometimes generates a php warning `ps_files_cleanup_dir: opendir(/var/lib/php/sessions) failed: Permission denied`
             if (!session_start($this->sessionOptions)) {
                 throw new \RuntimeException('Failed to start the session');
             }
