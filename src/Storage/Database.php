@@ -19,6 +19,9 @@ trait Database
             self::$dbh = new PDO($_ENV['DB_DSN'], $_ENV['DB_USER'], $_ENV['DB_PASSWORD']);
 
             self::$dbh->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            // this is necessary for ex. for queries using bound params for offset, limit on mariadb...
+            self::$dbh->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+
 
             $dbType = self::$dbh->getAttribute(PDO::ATTR_DRIVER_NAME);
             switch ($dbType) {
