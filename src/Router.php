@@ -6,27 +6,38 @@ class Router
 {
     protected string $rootUrl;
     protected string $rootDir;
+    protected bool $stripPhpExtension = false;
+    protected bool $stripIndexDotPhp = false;
 
     public function __construct()
     {
         $this->rootUrl = $_ENV['ROOT_URL'];
+        // nb: realpath trims the trailing slash
         $this->rootDir = realpath(__DIR__ . '/../public/');
+        $this->stripPhpExtension = EnvVarProcessor::bool($_ENV['URLS_STRIP_PHP_EXTENSION']);
+        $this->stripIndexDotPhp = EnvVarProcessor::bool($_ENV['URLS_STRIP_INDEX_DOT_PHP']);
     }
 
     /**
      * @todo add support for generating absolute URLs, etc...
      *       see fe. https://github.com/symfony/routing/blob/7.1/Generator/UrlGeneratorInterface.php
+     * @param string $fileName the absolute file path. If an empty string is passed, the current execution directory is used
      * @throws \DomainException
      */
     public function generate(string $fileName, array $queryStringParts = []): string
     {
-        $fileName = realpath($fileName);
-        if (!str_starts_with($fileName, $this->rootDir)) {
+        $realFileName = realpath($fileName);
+        if (!str_starts_with($realFileName, $this->rootDir . '/') && $realFileName !== $this->rootDir) {
             throw new \DomainException("Given file path is outside web root: '$fileName'");
         }
-        $url = $this->rootUrl . substr($fileName, strlen($this->rootDir) + 1);
+        $url = $this->rootUrl . substr($realFileName, strlen($this->rootDir) + 1);
 
-        /// @todo strip trailing `/index.php` based on analysis of $_SERVER
+        if ($this->stripIndexDotPhp) {
+            $url = preg_replace('#/index\.php$#', '/', $url);
+        }
+        if ($this->stripPhpExtension) {
+            $url = preg_replace('#\.php$#', '', $url);
+        }
 
         if ($queryStringParts) {
             $parts = [];
@@ -36,5 +47,34 @@ class Router
             $url .= '?' . implode('&', $parts);
         }
         return $url;
+    }
+
+    /**
+     * @todo add support for absolute urls, etc...
+     */
+    public function match(string $pathInfo): string|false
+    {
+        $parts = parse_url($pathInfo);
+        if (!$parts || !array_key_exists('path', $parts) || $parts['path'] === '' ||
+            array_intersect_key(['scheme' => 0, 'host' => 0, 'port' => 0, 'user' => 0, 'pass' => 0], $parts)) {
+            return false;
+        }
+
+        // nb: realpath normalizes excess slashes - no need to ltrim them. It also removes trailing ones
+        $fileName = realpath($this->rootDir . '/' . $parts['path']);
+
+        if ($fileName === false && $this->stripPhpExtension && !preg_match('#(/|\.php)$#', $parts['path'])) {
+            $fileName = realpath($this->rootDir . '/' . $parts['path'] . '.php');
+        }
+
+        if ($fileName === false || (!str_starts_with($fileName, $this->rootDir . '/') && $fileName !== $this->rootDir)) {
+            return false;
+        }
+
+        if (is_dir($fileName) && $this->stripIndexDotPhp && is_file($fileName . '/index.php')) {
+            $fileName = $fileName . '/index.php';
+        }
+
+        return $fileName;
     }
 }

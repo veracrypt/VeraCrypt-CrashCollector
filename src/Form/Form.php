@@ -2,6 +2,9 @@
 
 namespace Veracrypt\CrashCollector\Form;
 
+use Veracrypt\CrashCollector\Exception\FormFieldNotSubmittedException;
+use Veracrypt\CrashCollector\Form\Field\SubmitButton;
+
 /**
  * @property-read ?string $errorMessage
  */
@@ -11,17 +14,23 @@ abstract class Form
     const ON_POST = 2;
     const ON_BOTH = 3;
 
-    /** @var Field[] */
+    /** @var Field[] $fields */
     protected array $fields = [];
     protected string $submitLabel = 'Submit';
     protected int $submitOn = self::ON_POST;
     protected bool $isValid = false;
-    protected string $errorMessage;
+    protected ?string $errorMessage = null;
+    protected string $submitInputName = 's';
+    protected string|int $submitInputValue = 1;
+
+    public function __construct(public readonly string $actionUrl)
+    {
+    }
 
     /**
      * @throws \DomainException
      */
-    public function getField($fieldName): Field
+    public function getField(string $fieldName): Field
     {
         if (array_key_exists($fieldName, $this->fields)) {
             return $this->fields[$fieldName];
@@ -39,17 +48,15 @@ abstract class Form
 
     public function getSubmit(): Field
     {
-        $f = new Field($this->submitLabel, 's', 'submit');
-        $f->setValue(1);
-        return $f;
+        return new SubmitButton($this->submitLabel, $this->submitInputName, [], $this->submitInputValue);
     }
 
     public function isSubmitted(?array $request = null): bool
     {
-        $submit = $this->getSubmit();
         if ($request === null) {
             $request = $this->getRequest();
         }
+        $submit = $this->getSubmit();
         return isset($request[$submit->inputName]) && $request[$submit->inputName] == $submit->value;
     }
 
@@ -66,11 +73,46 @@ abstract class Form
         }
         foreach($this->fields as &$field) {
             if (!$field->setValue(array_key_exists($field->inputName, $request) ? $request[$field->inputName] : null)) {
+                // in case the field is not shown to the end user, we show its error message as the form's error message
+                if (!$field->isVisible) {
+                    $this->setError($field->errorMessage);
+                }
                 $this->isValid = false;
             }
         }
+
+        if ($this->isValid()) {
+            $this->validateSubmit($request);
+        }
     }
 
+    /**
+     * To be overridden in forms which have custom validation rules besides single field validation.
+     * Called after field validation, only if all the fields did validate.
+     * Should set $this->isValid and $this->errorMessage if there's anything wrong.
+     * Should work preferably with values from $this->fields rather than $request, which is passed in as a commodity
+     */
+    protected function validateSubmit(?array $request = null): void
+    {
+    }
+
+    /**
+     * Make sure, before calling this, that the field was submitted. Typically, add a Required constraint to it.
+     * @throws \DomainException for invalid field names
+     * @throws FormFieldNotSubmittedException
+     */
+    public function getFieldData(string $fieldName): mixed
+    {
+        $field = $this->getField($fieldName);
+        if ($field->value === null) {
+            throw new FormFieldNotSubmittedException("Form field '$fieldName' was not submitted");
+        }
+        return $field->getData();
+    }
+
+    /**
+     * Returns values for all fields which were submitted.
+     */
     public function getData(): array
     {
         $data = [];
@@ -80,6 +122,20 @@ abstract class Form
             }
         }
         return $data;
+    }
+
+    /**
+     * @return string[] key: field name
+     */
+    public function getFieldsErrors($onlyVisibleFields = true): array
+    {
+        $errors = [];
+        foreach($this->fields as $name => $field) {
+            if (($field->errorMessage !== '' && $field->errorMessage !== null) && ($field->isVisible || !$onlyVisibleFields)) {
+                $errors[$name] = $field->errorMessage;
+            }
+        }
+        return $errors;
     }
 
     public function getQueryStringParts(bool $includeSubmit = false)
@@ -113,9 +169,16 @@ abstract class Form
         }
     }
 
+    public function setError(?string $errorMessage)
+    {
+        $this->errorMessage = $errorMessage;
+        $this->isValid = ($errorMessage === null || $errorMessage === '');
+    }
+
     public function __get($name)
     {
         switch ($name) {
+            //case 'actionUrl':
             case 'errorMessage':
                 return $this->$name;
             default:
@@ -128,6 +191,7 @@ abstract class Form
     public function __isset($name)
     {
         return match ($name) {
+            //'actionUrl' => true,
             'errorMessage' => isset($this->$name),
             default => false
         };

@@ -38,7 +38,6 @@ class PasswordHasher
         $opsLimit = max((int)@$_ENV['PWD_HASH_OPSLIMIT'], 4, defined('SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE') ? \SODIUM_CRYPTO_PWHASH_OPSLIMIT_INTERACTIVE : 4);
         $memLimit = max((int)@$_ENV['PWD_HASH_MEMLIMIT'], 64 * 1024 * 1024, defined('SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE') ? \SODIUM_CRYPTO_PWHASH_MEMLIMIT_INTERACTIVE : 64 * 1024 * 1024);
 
-
         $this->options = [
             'cost' => $cost,
             'time_cost' => $opsLimit,
@@ -93,5 +92,10 @@ class PasswordHasher
     public function needsRehash(string $hashedPassword): bool
     {
         return password_needs_rehash($hashedPassword, $this->algorithm, $this->options);
+    }
+
+    public function generateRandomString(int $length): string
+    {
+        return substr(bin2hex(random_bytes($length)), 0, $length);
     }
 }

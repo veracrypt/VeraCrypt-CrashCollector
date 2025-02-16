@@ -1,0 +1,25 @@
+{% extends "base.html.twig" %}
+
+{% block pagetitle %}VeraCrypt Crash Collector | Upload Report{% endblock %}
+
+{% block content %}
+{% import "parts/forms/macros.html.twig" as forms %}
+{% if form.isSubmitted() and form.isValid() %}
+    <p class="text-success">Thank you for taking the time to submit the information and sorry for your hassles.<br/>
+    You can see, and remove, your submission following <a href="{{ urls.confirm }}">this link</a>, within the next hour.
+    </p>
+{% else %}
+    <form action="{{ form.actionUrl }}" method="{{ form.getMethod() }}" class="border p-3 rounded">
+        {% if form.errorMessage|default('') != '' %}
+            <p class="text-danger">{{ form.errorMessage }}</p>
+        {% endif %}
+        {{ include('parts/forms/cr_common_fields.html.twig') }}
+        <div class="row mb-3">
+            {{ forms.input(form.getField('callStack'), {'label': 'col-sm-2 col-form-label', 'div': 'col-sm-10', 'input': 'form-control'}, {'spellcheck': 'false'}) }}
+        </div>
+        <div class="row">
+            {{ forms.input(form.getSubmit(), {'input': 'btn btn-primary form-control'}) }}
+        </div>
+    </form>
+{% endif %}
+{% endblock %}

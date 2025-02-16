@@ -1,6 +1,7 @@
 # Contributing to VeraCrypt Crash Collector
 
-Thank you for considering contributing to VeraCrypt Crash Collector! Your contributions help improve the project, and we appreciate your effort. The following guidelines will assist you through the contribution process.
+Thank you for considering contributing to VeraCrypt Crash Collector! Your contributions help improve the project, and we
+appreciate your effort. The following guidelines will assist you through the contribution process.
 
 ## Getting Started
 
@@ -18,9 +19,10 @@ Thank you for considering contributing to VeraCrypt Crash Collector! Your contri
 
 ### 2. Set Up Your Development Environment
 
-Ensure you have the required tools installed to run a PHP web application. 
+Ensure you have the required tools installed to run a PHP web application.
 
 - **PHP**: Make sure you have PHP installed on your system.
+- **Redis**: Make sure you have a Redis server installed on your system or reachable from it
 - **Web Server**: Use a local web server like Apache or Nginx, or use the built-in PHP development server:
   ```bash
   php -S localhost:8000
@@ -105,11 +107,21 @@ We welcome new feature suggestions! If you have an idea, submit an issue labeled
 - **Proposed Solution**: A description of how it might work.
 - **Alternatives Considered**: Other possible approaches (if applicable).
 
+### Design Guidelines
+
+- Reduce external dependencies as much as possible. Ideally, this package should not depend on any external library
+  or service
+- Security is paramount
+- Use strict typing whenever possible
+-
+
 ### Coding Standards
 
 - Follow the **existing code style** and patterns.
+  Code formatting rules are specified in the `.editorconfig` file.
+  HTML styling is based on Bootstrap, version 5.3.
 - Always include **descriptive comments** in your code.
-- Write **unit tests** for new features or bug fixes when applicable.
+- Write either **unit tests** or **functional tests** for new features or bug fixes when applicable.
 - Ensure your changes do not break existing functionality.
 
 ### Commit Guidelines
