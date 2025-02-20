@@ -109,13 +109,12 @@ users accounts (create, remove, update, enable/disable them) is via a command-li
 
 The interaction between VeraCrypt and the Crash Collector is the following:
 
-1. VeraCrypt sends a POST request to the url `/report/upload.php` using `application/x-www-form-urlencoded` encoding.
-   In case of success, a 303 redirection response is returned.
-   In case of errors with the POST request data, a 400 response is returned, with `plain/text` content tipe, and
-   error messages displayed one per line.
+1. VeraCrypt sends the user visiting, via the browser installed on her/his computer, the url
+   `/report/upload.php?err=...&addr=...&...`.
+   All the information is encoded via the query string parameters.
+2. In case of success, a 303 redirection response is returned, sending the user to a page showing the uploaded data.
+   In case of errors with the request data, a 400 response is returned, with  error messages displayed one per line.
    In case of unexpected / server errors, a 40x or 50x response can also be returned.
-2. In case of a successful upload, VeraCrypt should start a browser session and send the user to the redirection target
-   URL given at step 1.
 
 Rate limiting is implemented, to avoid spamming of the upload page.
 

@@ -1,0 +1,9 @@
+{% extends "base.html.twig" %}
+
+{% block pagetitle %}VeraCrypt Crash Collector | Error Uploading Report{% endblock %}
+
+{% block content %}
+    {% for error in errors %}
+        {{ error }}<br/>
+    {% endfor %}
+{% endblock %}

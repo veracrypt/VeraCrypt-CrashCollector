@@ -13,6 +13,18 @@ use Veracrypt\CrashCollector\Templating;
 
 $router = new Router();
 
+// work around the _current_ way VC implements sending the call stack
+if (isset($_GET['st0']) && !isset($_GET['st'])) {
+    $_GET['st'] = [];
+    $i = 0;
+    while (isset($_GET['st' . $i])) {
+        $_GET['st'][] = $_GET['st' . $i];
+        unset($_GET['st' . $i]);
+        $i++;
+    }
+    $_GET['st'] = implode("\n", $_GET['st']);
+}
+
 $form = new CrashReportSubmitForm($router->generate(__FILE__));
 $confirmUrl = null;
 
@@ -33,25 +45,35 @@ if ($form->isSubmitted()) {
         header('Location: ' . $confirmUrl, true, 303);
         exit();
     } else {
-        http_response_code(400);
-        header('Content-Type: text/plain');
+        if (!EnvVarProcessor::bool($_ENV['ENABLE_BROWSER_UPLOAD'])) {
+            // Since we do not allow users to use a form to upload report data, there is no need to display it.
+            // We just display an error response instead
 
-        $errors = $form->getFieldsErrors();
-        array_walk($errors, function(&$value, $key) use ($form) {
-            $value = $form->getField($key)->label . ': ' . $value;
-        });
-        if ($form->errorMessage != '') {
-            array_unshift($errors, $form->errorMessage);
+            http_response_code(400);
+
+            $errors = $form->getFieldsErrors();
+            array_walk($errors, function(&$value, $key) use ($form) {
+                $value = $form->getField($key)->label . ': ' . $value;
+            });
+            if ($form->errorMessage != '') {
+                array_unshift($errors, $form->errorMessage);
+            }
+
+            /// @todo should we add back an option to display a plaintext response?
+            //header('Content-Type: text/plain');
+            //echo implode("\n", $errors);
+
+            $tpl = new Templating();
+            echo $tpl->render('report/upload_failure.html.twig', ['errors' => $errors, 'urls' => ['root' => $router->generate(__DIR__ . '/..')]]);
+            exit();
         }
-        echo implode("\n", $errors);
-
+    }
+} else {
+    if (!EnvVarProcessor::bool($_ENV['ENABLE_BROWSER_UPLOAD'])) {
+        http_response_code(404);
+        /// @todo should we display some help text instead of just a blank 404 page?
         exit();
     }
-}
-
-if (!EnvVarProcessor::bool($_ENV['ENABLE_BROWSER_UPLOAD'])) {
-    http_response_code(404);
-    exit();
 }
 
 // uncomment these lines to allow to pre-fill form fields using a GET request, but only act on POST
